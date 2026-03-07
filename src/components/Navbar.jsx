@@ -5,36 +5,39 @@ function NavItem({ icon, label, active, onClick }) {
     <button
       onClick={onClick}
       style={{
-        minWidth: 118,
-        height: 64,
-        padding: '10px 14px',
+        minWidth: 128,
+        height: 70,
+        padding: '10px 16px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
+        gap: 7,
         cursor: 'pointer',
         position: 'relative',
-        color: active ? '#eafff6' : 'rgba(214,245,232,0.72)',
-        transition: 'all 0.25s ease',
+        color: active ? '#f3fff9' : '#d7f7ea',
+        transition: 'all 0.22s ease',
         background: active
-          ? 'linear-gradient(180deg, rgba(52,211,153,0.20), rgba(52,211,153,0.06))'
-          : 'linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01))',
+          ? 'linear-gradient(180deg, rgba(52,211,153,0.26), rgba(52,211,153,0.10))'
+          : 'linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
         border: active
-          ? '1px solid rgba(52,211,153,0.45)'
-          : '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 14,
-        backdropFilter: 'blur(10px)',
+          ? '1px solid rgba(52,211,153,0.55)'
+          : '1px solid rgba(210,255,236,0.16)',
+        borderRadius: 16,
+        backdropFilter: 'blur(12px)',
         boxShadow: active
-          ? '0 0 20px rgba(52,211,153,0.25)'
-          : 'inset 0 0 14px rgba(255,255,255,0.02)',
+          ? '0 0 24px rgba(52,211,153,0.24), inset 0 1px 0 rgba(255,255,255,0.12)'
+          : '0 0 0 transparent, inset 0 1px 0 rgba(255,255,255,0.08)',
         transform: active ? 'translateY(-1px)' : 'none'
       }}
     >
       <div
         style={{
-          fontSize: 20,
-          filter: active ? 'drop-shadow(0 0 8px rgba(110,231,183,0.45))' : 'none'
+          fontSize: 22,
+          lineHeight: 1,
+          filter: active
+            ? 'drop-shadow(0 0 10px rgba(110,231,183,0.55))'
+            : 'drop-shadow(0 0 6px rgba(255,255,255,0.08))'
         }}
       >
         {icon}
@@ -42,28 +45,56 @@ function NavItem({ icon, label, active, onClick }) {
 
       <div
         style={{
-          fontSize: 10,
-          fontWeight: 800,
-          letterSpacing: 1.8,
-          textTransform: 'uppercase'
+          fontSize: 11,
+          fontWeight: 900,
+          letterSpacing: 1.3,
+          textTransform: 'uppercase',
+          textAlign: 'center',
+          lineHeight: 1.1,
+          textShadow: active ? '0 0 10px rgba(52,211,153,0.18)' : 'none'
         }}
       >
         {label}
       </div>
 
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 16,
+          pointerEvents: 'none',
+          boxShadow: active
+            ? 'inset 0 0 30px rgba(52,211,153,0.08)'
+            : 'inset 0 0 18px rgba(255,255,255,0.015)'
+        }}
+      />
+
       {active && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 16,
-            right: 16,
-            height: 2,
-            borderRadius: 999,
-            background: 'linear-gradient(90deg, transparent, #34d399, transparent)',
-            boxShadow: '0 0 12px #34d399'
-          }}
-        />
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 16,
+              right: 16,
+              height: 1,
+              borderRadius: 999,
+              background: 'linear-gradient(90deg, transparent, rgba(167,255,223,0.95), transparent)'
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 16,
+              right: 16,
+              height: 3,
+              borderRadius: 999,
+              background: 'linear-gradient(90deg, transparent, #34d399, transparent)',
+              boxShadow: '0 0 14px #34d399'
+            }}
+          />
+        </>
       )}
     </button>
   )
@@ -83,6 +114,12 @@ export default function Navbar({
         0% { transform: translateY(-100%); }
         100% { transform: translateY(100%); }
       }
+
+      @keyframes navGlow {
+        0% { opacity: 0.35; }
+        50% { opacity: 0.6; }
+        100% { opacity: 0.35; }
+      }
     `
     document.head.appendChild(style)
     return () => document.head.removeChild(style)
@@ -92,14 +129,15 @@ export default function Navbar({
     <div
       style={{
         position: 'relative',
-        minHeight: 90,
+        minHeight: 96,
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        padding: '10px 18px',
+        gap: 16,
+        padding: '12px 18px',
         background:
           'linear-gradient(180deg, rgba(6,20,16,0.98), rgba(4,12,10,0.96))',
-        borderBottom: '1px solid rgba(52,211,153,0.16)',
+        borderBottom: '1px solid rgba(52,211,153,0.18)',
         overflow: 'hidden'
       }}
     >
@@ -126,6 +164,21 @@ export default function Navbar({
         }}
       />
 
+      <div
+        style={{
+          position: 'absolute',
+          top: -40,
+          right: -40,
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(52,211,153,0.10), transparent 70%)',
+          filter: 'blur(16px)',
+          pointerEvents: 'none',
+          animation: 'navGlow 5s ease-in-out infinite'
+        }}
+      />
+
       {/* LEFT */}
       <div
         onClick={() => navigate('home')}
@@ -133,15 +186,17 @@ export default function Navbar({
           cursor: 'pointer',
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 1
+          zIndex: 1,
+          minWidth: 0
         }}
       >
         <div
           style={{
-            fontSize: 32,
+            fontSize: 34,
             fontWeight: 900,
             color: '#f3fff9',
-            letterSpacing: -1
+            letterSpacing: -1,
+            lineHeight: 1
           }}
         >
           Natu<span style={{ color: '#8bffcf' }}>Radar</span>
@@ -153,8 +208,8 @@ export default function Navbar({
             gap: 10,
             flexWrap: 'wrap',
             fontSize: 11,
-            color: 'rgba(214,245,232,0.7)',
-            marginTop: 4
+            color: 'rgba(226,250,240,0.78)',
+            marginTop: 6
           }}
         >
           <span>📍 {cityName}</span>
@@ -169,7 +224,8 @@ export default function Navbar({
           display: 'flex',
           justifyContent: 'center',
           gap: 12,
-          zIndex: 1
+          zIndex: 1,
+          flexWrap: 'wrap'
         }}
       >
         <NavItem

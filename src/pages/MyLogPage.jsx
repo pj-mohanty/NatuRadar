@@ -84,7 +84,6 @@ export default function MyLogPage() {
   const navbarHeight = 90
   const isMobile = windowWidth < 900
   const isPanelOpen = !!selected
-  const contentRightPadding = !isMobile && isPanelOpen ? detailPanelWidth : 0
 
   const entries = useMemo(() => Object.values(biodex), [biodex])
 
@@ -129,249 +128,301 @@ export default function MyLogPage() {
     <div
       style={{
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        display: 'grid',
+        gridTemplateColumns: !isMobile && isPanelOpen ? `minmax(0, 1fr) ${detailPanelWidth}px` : 'minmax(0, 1fr) 0px',
         overflow: 'hidden',
         background:
-          'radial-gradient(circle at top left, rgba(52,211,153,0.06), transparent 24%), radial-gradient(circle at bottom right, rgba(96,165,250,0.05), transparent 22%), #050d0a',
-        transition: 'padding-right 0.25s ease',
-        paddingRight: contentRightPadding
+          'radial-gradient(circle at top left, rgba(52,211,153,0.06), transparent 24%), radial-gradient(circle at bottom right, rgba(96,165,250,0.05), transparent 22%), #050d0a'
       }}
     >
+      <style>{`
+        @keyframes detailsSlideOnly {
+          from {
+            opacity: 0;
+            transform: translateX(28px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
+
       <div
         style={{
-          position: 'relative',
-          padding: isMobile ? '16px 16px 14px' : '18px 24px 16px',
-          borderBottom: '1px solid rgba(52,211,153,0.14)',
-          background: 'linear-gradient(180deg, rgba(8,20,16,0.96) 0%, rgba(5,13,10,0.92) 100%)',
-          overflow: 'hidden',
-          flexShrink: 0
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            background:
-              'linear-gradient(rgba(52,211,153,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.025) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-            opacity: 0.22
+            position: 'relative',
+            padding: isMobile ? '16px 16px 14px' : '18px 24px 16px',
+            borderBottom: '1px solid rgba(52,211,153,0.14)',
+            background: 'linear-gradient(180deg, rgba(8,20,16,0.96) 0%, rgba(5,13,10,0.92) 100%)',
+            overflow: 'hidden',
+            flexShrink: 0
           }}
-        />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        >
           <div
             style={{
-              fontSize: 11,
-              color: '#8ccab0',
-              letterSpacing: 2.4,
-              textTransform: 'uppercase',
-              fontWeight: 800,
-              marginBottom: 6
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background:
+                'linear-gradient(rgba(52,211,153,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.025) 1px, transparent 1px)',
+              backgroundSize: '28px 28px',
+              opacity: 0.22
             }}
-          >
-            Personal Archive
-          </div>
+          />
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-              gap: 16,
-              flexWrap: 'wrap'
-            }}
-          >
-            <div>
-              <div style={{ fontSize: isMobile ? 26 : 30, fontWeight: 900, color: '#34d399', lineHeight: 1 }}>
-                {entries.length}
-              </div>
-              <div style={{ fontSize: 13, color: '#7bb79f', marginTop: 6 }}>
-                species in your log
-              </div>
-            </div>
-
+          <div style={{ position: 'relative', zIndex: 1 }}>
             <div
               style={{
                 fontSize: 11,
-                color: '#7bb79f',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase'
+                color: '#8ccab0',
+                letterSpacing: 2.4,
+                textTransform: 'uppercase',
+                fontWeight: 800,
+                marginBottom: 6
               }}
             >
-              Collection synced from BioDex
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: 12,
-              background: 'rgba(52,211,153,0.08)',
-              borderRadius: 999,
-              height: 6,
-              overflow: 'hidden'
-            }}
-          >
-            <div
-              style={{
-                height: 6,
-                borderRadius: 999,
-                width: `${Math.min((entries.length / 300) * 100, 100)}%`,
-                background: 'linear-gradient(90deg, #22c55e, #6ee7b7)',
-                transition: 'width 0.6s ease'
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              marginTop: 12,
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'wrap'
-            }}
-          >
-            <StatChip label="Flora" value={floraCount} color="#22c55e" />
-            <StatChip label="Fauna" value={faunaCount} color="#60a5fa" />
-            <StatChip label="At Risk" value={atRiskCount} color="#ef4444" />
-            <StatChip label="Repeat Finds" value={repeatedScans} color="#fbbf24" />
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          gap: 10,
-          padding: isMobile ? '12px 16px 10px' : '14px 24px 12px',
-          borderBottom: '1px solid rgba(52,211,153,0.08)',
-          background: 'rgba(6,16,13,0.94)',
-          flexShrink: 0,
-          flexWrap: 'wrap'
-        }}
-      >
-        <FilterTab
-          label="All"
-          icon="🧬"
-          count={entries.length}
-          active={filter === 'all'}
-          onClick={() => setFilter('all')}
-        />
-        <FilterTab
-          label="Flora"
-          icon="🌿"
-          count={floraCount}
-          active={filter === 'flora'}
-          onClick={() => setFilter('flora')}
-        />
-        <FilterTab
-          label="Fauna"
-          icon="🐾"
-          count={faunaCount}
-          active={filter === 'fauna'}
-          onClick={() => setFilter('fauna')}
-        />
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: isMobile ? '16px 16px 22px' : '22px 24px 28px'
-        }}
-      >
-        {entries.length === 0 ? (
-          <div style={{ textAlign: 'center', paddingTop: 90 }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>📖</div>
-            <div style={{ fontSize: 18, color: '#d8fff0', fontWeight: 800 }}>
-              Your log is empty
-            </div>
-            <div style={{ fontSize: 13, color: '#7bb79f', marginTop: 8, lineHeight: 1.7 }}>
-              Go to the home page and scan a species to start building your collection.
+              Personal Archive
             </div>
 
-            <div
-              style={{
-                marginTop: 28,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-                gap: 14,
-                maxWidth: 900,
-                marginInline: 'auto'
-              }}
-            >
-              {buildPlaceholders('all', 4).map(ph => (
-                <PlaceholderCard key={ph.id} item={ph} />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 16,
-                gap: 12,
+                alignItems: 'flex-end',
+                gap: 16,
                 flexWrap: 'wrap'
               }}
             >
-              <div
-                style={{
-                  fontSize: 12,
-                  color: '#8bc7ae',
-                  letterSpacing: 1.5,
-                  textTransform: 'uppercase',
-                  fontWeight: 800
-                }}
-              >
-                {filter === 'all' ? 'All Discoveries' : filter === 'flora' ? 'Flora Discoveries' : 'Fauna Discoveries'}
+              <div>
+                <div style={{ fontSize: isMobile ? 26 : 30, fontWeight: 900, color: '#34d399', lineHeight: 1 }}>
+                  {entries.length}
+                </div>
+                <div style={{ fontSize: 13, color: '#7bb79f', marginTop: 6 }}>
+                  species in your log
+                </div>
               </div>
 
-              <div style={{ fontSize: 12, color: '#6ea58e' }}>
-                {sorted.length} visible · {entries.length} total
+              <div
+                style={{
+                  fontSize: 11,
+                  color: '#7bb79f',
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase'
+                }}
+              >
+                Collection synced from BioDex
               </div>
             </div>
 
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns:
-                  isPanelOpen && !isMobile
-                    ? 'repeat(auto-fill, minmax(170px, 1fr))'
-                    : 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: 16,
-                transition: 'all 0.25s ease'
+                marginTop: 12,
+                background: 'rgba(52,211,153,0.08)',
+                borderRadius: 999,
+                height: 6,
+                overflow: 'hidden'
               }}
             >
-              {sorted.map(entry => (
-                <SpeciesCard
-                  key={entry.latin || entry.name}
-                  entry={entry}
-                  selected={selected?.name === entry.name && selected?.latin === entry.latin}
-                  onClick={() => handleCardClick(entry)}
-                />
-              ))}
-
-              {placeholders.map(ph => (
-                <PlaceholderCard key={ph.id} item={ph} />
-              ))}
+              <div
+                style={{
+                  height: 6,
+                  borderRadius: 999,
+                  width: `${Math.min((entries.length / 300) * 100, 100)}%`,
+                  background: 'linear-gradient(90deg, #22c55e, #6ee7b7)',
+                  transition: 'width 0.6s ease'
+                }}
+              />
             </div>
 
-            {sorted.length === 0 && (
-              <div style={{ textAlign: 'center', paddingTop: 48 }}>
-                <div style={{ fontSize: 12, color: '#8ab49e' }}>
-                  No {filter} discoveries yet.
+            <div
+              style={{
+                marginTop: 12,
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap'
+              }}
+            >
+              <StatChip label="Flora" value={floraCount} color="#22c55e" />
+              <StatChip label="Fauna" value={faunaCount} color="#60a5fa" />
+              <StatChip label="At Risk" value={atRiskCount} color="#ef4444" />
+              <StatChip label="Repeat Finds" value={repeatedScans} color="#fbbf24" />
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            padding: isMobile ? '12px 16px 10px' : '14px 24px 12px',
+            borderBottom: '1px solid rgba(52,211,153,0.08)',
+            background: 'rgba(6,16,13,0.94)',
+            flexShrink: 0,
+            flexWrap: 'wrap'
+          }}
+        >
+          <FilterTab
+            label="All"
+            icon="🧬"
+            count={entries.length}
+            active={filter === 'all'}
+            onClick={() => setFilter('all')}
+          />
+          <FilterTab
+            label="Flora"
+            icon="🌿"
+            count={floraCount}
+            active={filter === 'flora'}
+            onClick={() => setFilter('flora')}
+          />
+          <FilterTab
+            label="Fauna"
+            icon="🐾"
+            count={faunaCount}
+            active={filter === 'fauna'}
+            onClick={() => setFilter('fauna')}
+          />
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'scroll',
+            padding: isMobile ? '16px 16px 22px' : '22px 24px 28px'
+          }}
+        >
+          {entries.length === 0 ? (
+            <div style={{ textAlign: 'center', paddingTop: 90 }}>
+              <div style={{ fontSize: 56, marginBottom: 16 }}>📖</div>
+              <div style={{ fontSize: 18, color: '#d8fff0', fontWeight: 800 }}>
+                Your log is empty
+              </div>
+              <div style={{ fontSize: 13, color: '#7bb79f', marginTop: 8, lineHeight: 1.7 }}>
+                Go to the home page and scan a species to start building your collection.
+              </div>
+
+              <div
+                style={{
+                  marginTop: 28,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+                  gap: 14,
+                  maxWidth: 900,
+                  marginInline: 'auto'
+                }}
+              >
+                {buildPlaceholders('all', 4).map(ph => (
+                  <PlaceholderCard key={ph.id} item={ph} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                  gap: 12,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: '#8bc7ae',
+                    letterSpacing: 1.5,
+                    textTransform: 'uppercase',
+                    fontWeight: 800
+                  }}
+                >
+                  {filter === 'all' ? 'All Discoveries' : filter === 'flora' ? 'Flora Discoveries' : 'Fauna Discoveries'}
+                </div>
+
+                <div style={{ fontSize: 12, color: '#6ea58e' }}>
+                  {sorted.length} visible · {entries.length} total
                 </div>
               </div>
-            )}
-          </>
-        )}
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: 16
+                }}
+              >
+                {sorted.map(entry => (
+                  <SpeciesCard
+                    key={entry.latin || entry.name}
+                    entry={entry}
+                    selected={selected?.name === entry.name && selected?.latin === entry.latin}
+                    onClick={() => handleCardClick(entry)}
+                  />
+                ))}
+
+                {placeholders.map(ph => (
+                  <PlaceholderCard key={ph.id} item={ph} />
+                ))}
+              </div>
+
+              {sorted.length === 0 && (
+                <div style={{ textAlign: 'center', paddingTop: 48 }}>
+                  <div style={{ fontSize: 12, color: '#8ab49e' }}>
+                    No {filter} discoveries yet.
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
-      {selected && (
+      {!isMobile && (
+        <div
+          style={{
+            width: detailPanelWidth,
+            minWidth: 0,
+            overflow: 'hidden',
+            position: 'relative',
+            borderLeft: isPanelOpen ? '1px solid rgba(52,211,153,0.14)' : 'none',
+            background: isPanelOpen ? 'rgba(4,10,8,0.55)' : 'transparent'
+          }}
+        >
+          <div
+            style={{
+              width: detailPanelWidth,
+              height: '100%',
+              transform: isPanelOpen ? 'translateX(0)' : `translateX(${detailPanelWidth}px)`,
+              opacity: isPanelOpen ? 1 : 0,
+              transition: 'transform 0.28s ease, opacity 0.2s ease',
+              pointerEvents: isPanelOpen ? 'auto' : 'none'
+            }}
+          >
+            {selected && (
+              <div style={{ height: '100%', animation: 'detailsSlideOnly 0.22s ease-out' }}>
+                <DetailPanel
+                  species={selected}
+                  onClose={() => setSelected(null)}
+                  topOffset={navbarHeight}
+                  panelWidth={detailPanelWidth}
+                  inlineMode
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isMobile && selected && (
         <DetailPanel
           species={selected}
           onClose={() => setSelected(null)}
@@ -478,15 +529,17 @@ function SpeciesCard({ entry, selected, onClick }) {
       style={{
         position: 'relative',
         background: selected
-          ? 'linear-gradient(180deg, rgba(13,42,31,1) 0%, rgba(10,26,20,1) 100%)'
-          : 'linear-gradient(180deg, rgba(10,26,20,1) 0%, rgba(8,18,14,1) 100%)',
+          ? 'linear-gradient(180deg, rgba(15,38,30,1) 0%, rgba(9,21,17,1) 100%)'
+          : 'linear-gradient(180deg, rgba(11,25,20,1) 0%, rgba(7,16,13,1) 100%)',
         border: `1px solid ${selected ? color : color + '25'}`,
-        borderTop: `2px solid ${color}`,
-        borderRadius: 14,
+        borderRadius: 18,
         overflow: 'hidden',
         cursor: 'pointer',
         transition: 'all 0.18s ease',
-        boxShadow: selected ? `0 0 22px ${color}22` : '0 0 0 transparent'
+        boxShadow: selected
+          ? `0 0 26px ${color}33, inset 0 0 30px rgba(255,255,255,0.02)`
+          : '0 0 0 transparent',
+        transform: selected ? 'translateY(-2px)' : 'translateY(0)'
       }}
     >
       <div
@@ -497,14 +550,26 @@ function SpeciesCard({ entry, selected, onClick }) {
           background:
             'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
-          opacity: 0.12
+          opacity: 0.1
         }}
       />
 
       <div
         style={{
-          height: 118,
-          background: `${color}08`,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+          opacity: 0.95
+        }}
+      />
+
+      <div
+        style={{
+          height: 132,
+          background: `radial-gradient(circle at top, ${color}15, transparent 60%), ${color}08`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -512,6 +577,14 @@ function SpeciesCard({ entry, selected, onClick }) {
           overflow: 'hidden'
         }}
       >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.05), transparent 35%, transparent 65%, rgba(255,255,255,0.02))'
+          }}
+        />
+
         {entry.photo ? (
           <img
             src={entry.photo}
@@ -522,7 +595,7 @@ function SpeciesCard({ entry, selected, onClick }) {
             }}
           />
         ) : (
-          <span style={{ fontSize: 44, filter: `drop-shadow(0 0 8px ${color}88)` }}>
+          <span style={{ fontSize: 50, filter: `drop-shadow(0 0 12px ${color}99)` }}>
             {entry.emoji}
           </span>
         )}
@@ -531,14 +604,33 @@ function SpeciesCard({ entry, selected, onClick }) {
           style={{
             position: 'absolute',
             top: 8,
+            left: 8,
+            fontSize: 8,
+            padding: '4px 8px',
+            borderRadius: 999,
+            background: 'rgba(0,0,0,0.58)',
+            border: `1px solid ${color}55`,
+            color: '#dffff1',
+            fontWeight: 800,
+            letterSpacing: 0.7,
+            textTransform: 'uppercase'
+          }}
+        >
+          Collected
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            top: 8,
             right: 8,
             fontSize: 8,
-            padding: '3px 7px',
+            padding: '4px 8px',
             borderRadius: 999,
             background: `${rarity.color}dd`,
             color: '#fff',
-            fontWeight: 800,
-            letterSpacing: 0.5
+            fontWeight: 900,
+            letterSpacing: 0.7
           }}
         >
           {rarity.label}
@@ -551,26 +643,43 @@ function SpeciesCard({ entry, selected, onClick }) {
               bottom: 8,
               left: 8,
               fontSize: 9,
-              padding: '2px 7px',
+              padding: '3px 8px',
               borderRadius: 999,
-              background: 'rgba(0,0,0,0.72)',
+              background: 'rgba(0,0,0,0.7)',
               color: '#34d399',
-              fontWeight: 700
+              fontWeight: 800
             }}
           >
-            ×{entry.scanCount}
+            ×{entry.scanCount} scans
           </div>
         )}
-      </div>
 
-      <div style={{ padding: '10px 11px 11px', position: 'relative' }}>
         <div
           style={{
-            fontSize: 12,
-            fontWeight: 800,
-            color: '#e2f5ee',
-            lineHeight: 1.35,
-            marginBottom: 3
+            position: 'absolute',
+            bottom: 8,
+            right: 8,
+            fontSize: 9,
+            padding: '3px 8px',
+            borderRadius: 999,
+            background: `${color}22`,
+            border: `1px solid ${color}44`,
+            color,
+            fontWeight: 800
+          }}
+        >
+          {entry.statusCode || 'LC'}
+        </div>
+      </div>
+
+      <div style={{ padding: '12px 12px 13px', position: 'relative' }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 900,
+            color: '#ecfff7',
+            lineHeight: 1.3,
+            marginBottom: 4
           }}
         >
           {entry.emoji} {entry.name}
@@ -584,22 +693,29 @@ function SpeciesCard({ entry, selected, onClick }) {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            marginBottom: 7
+            marginBottom: 10
           }}
         >
           {entry.latin}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
           <span
             style={{
               fontSize: 10,
               color,
               fontWeight: 800,
-              letterSpacing: 0.4
+              letterSpacing: 0.5,
+              textTransform: 'uppercase'
             }}
           >
-            {entry.statusCode || 'LC'}
+            {entry.status}
           </span>
 
           <span style={{ fontSize: 10, color: '#6ea58e' }}>

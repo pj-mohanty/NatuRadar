@@ -59,11 +59,50 @@ function getThreatData(threats) {
   }))
 }
 
+function getRarityMeta(status) {
+  return {
+    'Critically Endangered': { label: 'ULTRA RARE', color: '#dc2626' },
+    'Endangered': { label: 'RARE', color: '#ef4444' },
+    'Vulnerable': { label: 'UNCOMMON', color: '#fb923c' },
+    'Near Threatened': { label: 'UNCOMMON', color: '#fbbf24' },
+    'Least Concern': { label: 'COMMON', color: '#34d399' },
+    'Unknown': { label: 'UNKNOWN', color: '#60a5fa' }
+  }[status] || { label: 'UNKNOWN', color: '#60a5fa' }
+}
+
+function getSignalScore(species) {
+  const base = {
+    'Critically Endangered': 98,
+    'Endangered': 90,
+    'Vulnerable': 76,
+    'Near Threatened': 61,
+    'Least Concern': 42,
+    'Unknown': 55
+  }[species?.status] || 50
+
+  const confidenceBoost = Math.round((species?.confidence || 0) * 0.08)
+  return Math.min(100, base + confidenceBoost)
+}
+
+function getEcoImpact(details) {
+  if (!details) return 'Supports local ecosystem balance.'
+  const text = `${details.habitat || ''} ${details.diet || ''}`.toLowerCase()
+
+  if (text.includes('pollinat')) return 'Pollinator support species'
+  if (text.includes('seed')) return 'Seed dispersal contributor'
+  if (text.includes('predator')) return 'Helps regulate populations'
+  if (text.includes('fung')) return 'Decomposer ecosystem role'
+  if (text.includes('wetland')) return 'Wetland health indicator'
+
+  return 'Important biodiversity network member'
+}
+
 export default function DetailPanel({
   species,
   onClose,
   topOffset = 90,
-  panelWidth = 634
+  panelWidth = 634,
+  inlineMode = false
 }) {
   const [details, setDetails] = useState(null)
   const [taxonData, setTaxonData] = useState(null)
@@ -104,6 +143,9 @@ export default function DetailPanel({
 
   const isMobile = windowWidth < 900
   const color = STATUS_COLORS[species?.status] || '#34d399'
+  const rarity = getRarityMeta(species?.status)
+  const signalScore = getSignalScore(species)
+  const ecoImpact = getEcoImpact(details)
 
   const popData = useMemo(
     () => (details ? getPopulationData(species.status, details.populationTrend) : []),
@@ -240,26 +282,51 @@ export default function DetailPanel({
   return (
     <div
       style={{
-        position: 'fixed',
-        top: isMobile ? 0 : topOffset,
-        right: 0,
-        bottom: 0,
-        width: isMobile ? '100vw' : `min(${panelWidth}px, 92vw)`,
-        height: isMobile ? '100vh' : `calc(100vh - ${topOffset}px)`,
+        position: inlineMode ? 'relative' : 'fixed',
+        top: inlineMode ? 0 : (isMobile ? 0 : topOffset),
+        right: inlineMode ? 'auto' : 0,
+        bottom: inlineMode ? 'auto' : 0,
+        width: inlineMode ? '100%' : (isMobile ? '100vw' : `min(${panelWidth}px, 92vw)`),
+        height: inlineMode ? '100%' : (isMobile ? '100vh' : `calc(100vh - ${topOffset}px)`),
         background: 'linear-gradient(180deg, rgba(7,20,15,0.99) 0%, rgba(5,13,10,0.99) 100%)',
-        borderLeft: isMobile ? 'none' : `1px solid ${color}33`,
+        borderLeft: inlineMode ? 'none' : (isMobile ? 'none' : `1px solid ${color}33`),
         zIndex: 2000,
         overflowY: 'auto',
-        boxShadow: isMobile ? 'none' : '-12px 0 36px rgba(0,0,0,0.55)'
+        boxShadow: inlineMode ? 'none' : (isMobile ? 'none' : '-12px 0 36px rgba(0,0,0,0.55)')
       }}
     >
+      <style>{`
+        @keyframes panelGlow {
+          0% { box-shadow: 0 0 0 rgba(52,211,153,0.0); }
+          50% { box-shadow: 0 0 30px rgba(52,211,153,0.10); }
+          100% { box-shadow: 0 0 0 rgba(52,211,153,0.0); }
+        }
+
+        @keyframes scanLine {
+          0% { transform: translateY(-100%); opacity: 0; }
+          20% { opacity: 0.22; }
+          100% { transform: translateY(220%); opacity: 0; }
+        }
+
+        @keyframes softFloat {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+          100% { transform: translateY(0px); }
+        }
+
+        @keyframes shimmerMove {
+          0% { transform: translateX(-130%); }
+          100% { transform: translateX(130%); }
+        }
+      `}</style>
+
       <div
         style={{
-          position: 'fixed',
-          top: isMobile ? 0 : topOffset,
+          position: inlineMode ? 'absolute' : 'fixed',
+          top: inlineMode ? 0 : (isMobile ? 0 : topOffset),
           right: 0,
-          width: isMobile ? '100vw' : `min(${panelWidth}px, 92vw)`,
-          height: isMobile ? '100vh' : `calc(100vh - ${topOffset}px)`,
+          width: inlineMode ? '100%' : (isMobile ? '100vw' : `min(${panelWidth}px, 92vw)`),
+          height: inlineMode ? '100%' : (isMobile ? '100vh' : `calc(100vh - ${topOffset}px)`),
           pointerEvents: 'none',
           background:
             'linear-gradient(rgba(52,211,153,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.025) 1px, transparent 1px)',
@@ -273,63 +340,157 @@ export default function DetailPanel({
         style={{
           padding: isMobile ? '16px 16px 14px' : '20px 20px 16px',
           borderBottom: `1px solid ${color}22`,
-          background: 'rgba(11,30,24,0.9)',
+          background: 'linear-gradient(180deg, rgba(11,30,24,0.94) 0%, rgba(8,22,17,0.88) 100%)',
           position: 'sticky',
           top: 0,
           zIndex: 10,
-          backdropFilter: 'blur(12px)'
+          backdropFilter: 'blur(14px)'
         }}
       >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 12
+            position: 'relative',
+            overflow: 'hidden',
+            border: `1px solid ${color}33`,
+            borderRadius: 18,
+            padding: isMobile ? 14 : 16,
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)',
+            animation: 'panelGlow 4s ease-in-out infinite'
           }}
         >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: isMobile ? 30 : 36, marginBottom: 4 }}>
-              {species.emoji || '🌱'}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background:
+                'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)',
+              backgroundSize: '26px 26px',
+              opacity: 0.14
+            }}
+          />
+
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: '-20%',
+              width: '40%',
+              height: '100%',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)',
+              transform: 'skewX(-18deg)',
+              animation: 'shimmerMove 3.8s linear infinite'
+            }}
+          />
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 12,
+              position: 'relative',
+              zIndex: 1
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: isMobile ? 34 : 40,
+                    filter: `drop-shadow(0 0 12px ${color}88)`,
+                    animation: 'softFloat 3.2s ease-in-out infinite'
+                  }}
+                >
+                  {species.emoji || '🌱'}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    letterSpacing: 1.4,
+                    color: rarity.color,
+                    background: `${rarity.color}18`,
+                    border: `1px solid ${rarity.color}55`,
+                    borderRadius: 999,
+                    padding: '5px 10px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  {rarity.label}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1.4,
+                    color: '#7dd3fc',
+                    background: 'rgba(96,165,250,0.12)',
+                    border: '1px solid rgba(96,165,250,0.35)',
+                    borderRadius: 999,
+                    padding: '5px 10px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  Signal {signalScore}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: isMobile ? 18 : 21,
+                  color: '#ecfff7',
+                  lineHeight: 1.15
+                }}
+              >
+                {species.name}
+              </div>
+
+              <div
+                style={{
+                  fontStyle: 'italic',
+                  fontSize: 12,
+                  color: '#89bca8',
+                  marginTop: 4,
+                  marginBottom: 10
+                }}
+              >
+                {species.latin}
+              </div>
+
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                <Badge text={species.status} color={color} />
+                <Badge text={`${species.confidence}% confidence`} color="#34d399" />
+                <Badge text={ecoImpact} color="#60a5fa" />
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))',
+                  gap: 8
+                }}
+              >
+                <HeroMiniStat label="Type" value={species.statusCode || 'BIO'} color={color} />
+                <HeroMiniStat label="Rarity" value={rarity.label} color={rarity.color} />
+                <HeroMiniStat label="Signal" value={`${signalScore}/100`} color="#7dd3fc" />
+                <HeroMiniStat label="Class" value={species.emoji || '🌱'} color="#c084fc" />
+              </div>
             </div>
 
-            <div
-              style={{
-                fontWeight: 800,
-                fontSize: isMobile ? 17 : 18,
-                color: '#e2f5ee',
-                lineHeight: 1.2
-              }}
-            >
-              {species.name}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+              <Btn onClick={onClose} label="✕" color="#8ab49e" />
+              <Btn
+                onClick={downloadPDF}
+                label={downloading ? '⟳' : '⬇'}
+                color={details ? color : '#5a8a76'}
+                disabled={!details || downloading}
+                title="Download PDF report"
+              />
             </div>
-
-            <div
-              style={{
-                fontStyle: 'italic',
-                fontSize: 12,
-                color: '#7bb79f',
-                marginBottom: 10
-              }}
-            >
-              {species.latin}
-            </div>
-
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <Badge text={species.status} color={color} />
-              <Badge text={`${species.confidence}% confidence`} color="#34d399" />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-            <Btn onClick={onClose} label="✕" color="#8ab49e" />
-            <Btn
-              onClick={downloadPDF}
-              label={downloading ? '⟳' : '⬇'}
-              color={details ? color : '#5a8a76'}
-              disabled={!details || downloading}
-              title="Download PDF report"
-            />
           </div>
         </div>
       </div>
@@ -365,7 +526,42 @@ export default function DetailPanel({
 
         {taxonData?.photos?.length > 0 && (
           <Section title="Photos from iNaturalist" color={color}>
-            <div style={{ position: 'relative', marginBottom: 8 }}>
+            <div
+              style={{
+                position: 'relative',
+                marginBottom: 8,
+                borderRadius: 16,
+                overflow: 'hidden',
+                border: `1px solid ${color}22`,
+                background: 'rgba(255,255,255,0.02)'
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  pointerEvents: 'none',
+                  background:
+                    'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
+                  backgroundSize: '24px 24px',
+                  opacity: 0.15,
+                  zIndex: 2
+                }}
+              />
+
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  height: 80,
+                  background: `linear-gradient(180deg, transparent 0%, ${color}22 45%, transparent 100%)`,
+                  zIndex: 3,
+                  pointerEvents: 'none',
+                  animation: 'scanLine 3.2s linear infinite'
+                }}
+              />
+
               <img
                 src={taxonData.photos[photoIdx]}
                 alt={species.name}
@@ -381,41 +577,41 @@ export default function DetailPanel({
                   e.target.style.display = 'none'
                 }}
               />
-
-              {taxonData.photos.length > 1 && (
-                <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                  {taxonData.photos.map((url, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setPhotoIdx(i)}
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 6,
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        border: `2px solid ${i === photoIdx ? color : 'transparent'}`,
-                        opacity: i === photoIdx ? 1 : 0.5,
-                        transition: 'all 0.15s',
-                        flexShrink: 0
-                      }}
-                    >
-                      <img
-                        src={url}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        alt=""
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {taxonData.observations_count > 0 && (
-                <div style={{ fontSize: 10, color: '#5a8a76', marginTop: 8, letterSpacing: 1 }}>
-                  {taxonData.observations_count.toLocaleString()} observations on iNaturalist
-                </div>
-              )}
             </div>
+
+            {taxonData.photos.length > 1 && (
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {taxonData.photos.map((url, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setPhotoIdx(i)}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 8,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: `2px solid ${i === photoIdx ? color : 'transparent'}`,
+                      opacity: i === photoIdx ? 1 : 0.5,
+                      transition: 'all 0.15s',
+                      flexShrink: 0
+                    }}
+                  >
+                    <img
+                      src={url}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt=""
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {taxonData.observations_count > 0 && (
+              <div style={{ fontSize: 10, color: '#5a8a76', marginTop: 8, letterSpacing: 1 }}>
+                {taxonData.observations_count.toLocaleString()} observations on iNaturalist
+              </div>
+            )}
           </Section>
         )}
 
@@ -679,6 +875,40 @@ function Section({ title, color, children }) {
         {title}
       </div>
       {children}
+    </div>
+  )
+}
+
+function HeroMiniStat({ label, value, color }) {
+  return (
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.025)',
+        border: `1px solid ${color}22`,
+        borderRadius: 12,
+        padding: '8px 10px'
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          color: '#78a996',
+          textTransform: 'uppercase',
+          letterSpacing: 1.1,
+          marginBottom: 3
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          color
+        }}
+      >
+        {value}
+      </div>
     </div>
   )
 }
