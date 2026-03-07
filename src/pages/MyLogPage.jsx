@@ -20,16 +20,21 @@ const RARITY = {
   'Unknown': { label: 'UNKNOWN', color: '#60a5fa' },
 }
 
-const PLANT_EMOJIS = ['🌿', '🌱', '🌲', '🌸', '🌺', '🌻', '🌾', '🍄']
+const FLORA_EMOJIS = ['🌿', '🌱', '🌲', '🌸', '🌺', '🌻', '🌾']
 
 function isFlora(entry) {
-  return PLANT_EMOJIS.includes(entry.emoji)
+  return FLORA_EMOJIS.includes(entry.emoji)
 }
 
 function getFilteredEntries(entries, filter) {
   if (filter === 'flora') return entries.filter(isFlora)
   if (filter === 'fauna') return entries.filter(e => !isFlora(e))
   return entries
+}
+
+function getSafeTime(value) {
+  const t = new Date(value).getTime()
+  return Number.isNaN(t) ? 0 : t
 }
 
 function buildPlaceholders(filter, countNeeded = 4) {
@@ -93,7 +98,7 @@ export default function MyLogPage() {
   const filtered = useMemo(() => getFilteredEntries(entries, filter), [entries, filter])
 
   const sorted = useMemo(
-    () => [...filtered].sort((a, b) => new Date(b.discoveredAt) - new Date(a.discoveredAt)),
+    () => [...filtered].sort((a, b) => getSafeTime(b.discoveredAt) - getSafeTime(a.discoveredAt)),
     [filtered]
   )
 
@@ -108,6 +113,7 @@ export default function MyLogPage() {
 
   const handleCardClick = (entry) => {
     const isSame = selected?.name === entry.name && selected?.latin === entry.latin
+
     if (isSame) {
       setSelected(null)
     } else {
@@ -119,7 +125,7 @@ export default function MyLogPage() {
         statusCode: entry.statusCode,
         taxonId: entry.taxonId,
         photo: entry.photo,
-        confidence: 95,
+        confidence: entry.confidence ?? 0,
       })
     }
   }
@@ -518,10 +524,9 @@ function FilterTab({ label, icon, count, active, onClick }) {
 function SpeciesCard({ entry, selected, onClick }) {
   const color = STATUS_COLORS[entry.status] || '#22c55e'
   const rarity = RARITY[entry.status] || RARITY.Unknown
-  const date = new Date(entry.discoveredAt).toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric'
-  })
+  const date = entry.discoveredAt
+    ? new Date(entry.discoveredAt).toLocaleDateString([], { month: 'short', day: 'numeric' })
+    : 'Unknown'
 
   return (
     <div

@@ -10,10 +10,31 @@ const BADGES = [
   { id: 'ten_scans', emoji: '🏆', label: 'Conservation Hero', desc: '10 total species identified', category: 'Milestone', condition: (stats) => stats.totalScans >= 10 },
 ]
 
+function getWeekKey(date = new Date()) {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - d.getDay())
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
 function loadStats() {
   try {
     const raw = sessionStorage.getItem('species_signal_stats')
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return {
+        totalScans: 0,
+        todayScans: 0,
+        weekScans: 0,
+        endangeredFound: 0,
+        criticalFound: 0,
+        earnedBadges: [],
+        lastScanDate: null,
+        lastWeekKey: null,
+        bioScoreHistory: [],
+        ...parsed
+      }
+    }
   } catch {}
 
   return {
@@ -24,6 +45,7 @@ function loadStats() {
     criticalFound: 0,
     earnedBadges: [],
     lastScanDate: null,
+    lastWeekKey: null,
     bioScoreHistory: []
   }
 }
@@ -37,15 +59,21 @@ function saveStats(stats) {
 export function updateStats(result, currentBioScore) {
   const stats = loadStats()
   const today = new Date().toDateString()
+  const weekKey = getWeekKey()
 
   if (stats.lastScanDate !== today) {
     stats.todayScans = 0
+  }
+
+  if (stats.lastWeekKey !== weekKey) {
+    stats.weekScans = 0
   }
 
   stats.totalScans += 1
   stats.todayScans += 1
   stats.weekScans += 1
   stats.lastScanDate = today
+  stats.lastWeekKey = weekKey
 
   if (['Endangered', 'Critically Endangered'].includes(result.status)) {
     stats.endangeredFound += 1
@@ -77,10 +105,23 @@ export function updateStats(result, currentBioScore) {
 }
 
 export function getStats() {
-  return loadStats()
+  const stats = loadStats()
+  const today = new Date().toDateString()
+  const weekKey = getWeekKey()
+
+  if (stats.lastScanDate !== today) {
+    stats.todayScans = 0
+  }
+
+  if (stats.lastWeekKey !== weekKey) {
+    stats.weekScans = 0
+    stats.lastWeekKey = weekKey
+  }
+
+  saveStats(stats)
+  return stats
 }
 
-// ── Impact Flash ──────────────────────────────────────────────────────────────
 export function ImpactFlash({ result, scoreDelta, cityName, onDone }) {
   const [phase, setPhase] = useState('in')
 
@@ -188,7 +229,6 @@ export function ImpactFlash({ result, scoreDelta, cityName, onDone }) {
   )
 }
 
-// ── UserStats panel ───────────────────────────────────────────────────────────
 export default function UserStats({ stats, cityName }) {
   const earned = BADGES.filter(b => stats.earnedBadges?.includes(b.id))
   const locked = BADGES.filter(b => !stats.earnedBadges?.includes(b.id))
@@ -200,7 +240,6 @@ export default function UserStats({ stats, cityName }) {
         borderBottom: '1px solid rgba(52,211,153,0.15)'
       }}
     >
-      {/* Scan counters */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {[
           { label: 'Today', value: stats.todayScans || 0, color: '#34d399' },
@@ -238,7 +277,6 @@ export default function UserStats({ stats, cityName }) {
         ))}
       </div>
 
-      {/* Activity strip */}
       {stats.todayScans > 0 && (
         <div
           style={{
@@ -257,7 +295,6 @@ export default function UserStats({ stats, cityName }) {
         </div>
       )}
 
-      {/* Section heading */}
       <div
         style={{
           display: 'flex',
@@ -293,7 +330,6 @@ export default function UserStats({ stats, cityName }) {
         </div>
       </div>
 
-      {/* Earned badges */}
       {earned.length > 0 && (
         <div style={{ marginBottom: 10 }}>
           <div
@@ -373,7 +409,6 @@ export default function UserStats({ stats, cityName }) {
         </div>
       )}
 
-      {/* Locked badges always visible */}
       <div>
         <div
           style={{

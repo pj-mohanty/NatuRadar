@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { listenSightings } from './services/firebase'
+import { useState, useEffect, useMemo } from 'react'
+import { listenSightings, listenLeaderboard } from './services/firebase'
 import HomePage from './pages/HomePage'
 import MyLogPage from './pages/MyLogPage'
 import MissionPage from './pages/Mission'
@@ -17,9 +17,50 @@ function getOrCreateUserId() {
   return id
 }
 
+function getStatusCode(status) {
+  return (
+    {
+      'Least Concern': 'LC',
+      'Near Threatened': 'NT',
+      'Vulnerable': 'VU',
+      'Endangered': 'EN',
+      'Critically Endangered': 'CR',
+      'Unknown': 'UN'
+    }[status] || 'UN'
+  )
+}
+
+function normalizeSighting(s) {
+  const observedAt =
+    s.observedAt ||
+    s.createdAt ||
+    (s.timestamp?.toDate ? s.timestamp.toDate().toISOString() : null) ||
+    null
+
+  return {
+    ...s,
+    id: s.id || `${s.name || 'species'}-${s.lat}-${s.lng}-${observedAt || 'time'}`,
+    name: s.name || 'Unknown species',
+    latin: s.latin || '',
+    emoji: s.emoji || '🌿',
+    status: s.status || 'Unknown',
+    statusCode: s.statusCode || getStatusCode(s.status),
+    confidence: typeof s.confidence === 'number' ? s.confidence : 0,
+    observer: s.observer || s.username || 'Explorer',
+    username: s.username || s.observer || 'Explorer',
+    photo: s.photo || null,
+    lat: Number(s.lat),
+    lng: Number(s.lng),
+    observedAt,
+    createdAt: s.createdAt || observedAt,
+    timestamp: s.timestamp || null
+  }
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home')
-  const [sightings, setSightings] = useState([])
+  const [rawSightings, setRawSightings] = useState([])
+  const [leaderboardEntries, setLeaderboardEntries] = useState([])
   const [coords, setCoords] = useState(null)
   const [cityName, setCityName] = useState('Locating...')
   const [userId] = useState(() => getOrCreateUserId())
@@ -27,7 +68,18 @@ export default function App() {
     () => localStorage.getItem('species_signal_username') || ''
   )
   const [usernameInput, setUsernameInput] = useState('')
+  const [isScientist] = useState(
+    () => localStorage.getItem('species_signal_is_scientist') === 'true'
+  )
   const showUsernameModal = !username
+
+  const sightings = useMemo(
+    () =>
+      rawSightings
+        .map(normalizeSighting)
+        .filter((s) => !Number.isNaN(s.lat) && !Number.isNaN(s.lng)),
+    [rawSightings]
+  )
 
   const saveUsername = () => {
     const name = usernameInput.trim()
@@ -66,7 +118,11 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    return listenSightings((data) => setSightings(data))
+    return listenSightings((data) => setRawSightings(data))
+  }, [])
+
+  useEffect(() => {
+    return listenLeaderboard((data) => setLeaderboardEntries(data))
   }, [])
 
   const navigate = (page) => {
@@ -212,6 +268,7 @@ export default function App() {
         {currentPage === 'leaderboard' && (
           <LeaderboardPage
             sightings={sightings}
+            leaderboardEntries={leaderboardEntries}
             userId={userId}
           />
         )}
@@ -221,6 +278,8 @@ export default function App() {
             sightings={sightings}
             username={username}
             userId={userId}
+            cityName={cityName}
+            isScientist={isScientist}
           />
         )}
       </div>

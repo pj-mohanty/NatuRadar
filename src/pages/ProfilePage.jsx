@@ -24,25 +24,51 @@ function getProfileStats(sightings = [], userId, username) {
       )
     : 0
 
+  const latestSeenAt = userSightings.reduce((latest, s) => {
+    const ts = s.createdAt || s.observedAt
+    const seenAt = ts ? new Date(ts).getTime() : 0
+    return seenAt > latest ? seenAt : latest
+  }, 0)
+
   return {
     totalSightings: userSightings.length,
     rareFinds,
     criticalFinds,
     uniqueSpecies: speciesSet.size,
-    avgConfidence
+    avgConfidence,
+    latestSeenAt
   }
+}
+
+function getInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return 'NR'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
+}
+
+function formatLastSeen(ts) {
+  if (!ts) return 'No recent activity'
+  return new Date(ts).toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric'
+  })
 }
 
 export default function ProfilePage({
   sightings = [],
   username,
   userId,
+  cityName = 'Unknown Area',
+  isScientist = false,
   onLogout
 }) {
   const stats = useMemo(
     () => getProfileStats(sightings, userId, username),
     [sightings, userId, username]
   )
+
+  const initials = getInitials(username)
 
   return (
     <div
@@ -73,7 +99,7 @@ export default function ProfilePage({
               letterSpacing: 3,
               textTransform: 'uppercase',
               color: '#8cd0b2',
-              marginBottom: 10,
+              marginBottom: 14,
               fontWeight: 700
             }}
           >
@@ -82,22 +108,69 @@ export default function ProfilePage({
 
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr auto',
               gap: 18,
-              alignItems: 'flex-start',
-              flexWrap: 'wrap'
+              alignItems: 'center'
             }}
           >
+            <div
+              style={{
+                width: 88,
+                height: 88,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(180deg, rgba(52,211,153,0.22), rgba(96,165,250,0.18))',
+                border: '1px solid rgba(52,211,153,0.28)',
+                color: '#ecfff6',
+                fontSize: 28,
+                fontWeight: 900,
+                boxShadow: '0 0 20px rgba(52,211,153,0.10)'
+              }}
+            >
+              {initials}
+            </div>
+
             <div>
               <div
                 style={{
-                  fontSize: 32,
-                  fontWeight: 900,
-                  color: '#ecfff6'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  flexWrap: 'wrap'
                 }}
               >
-                {username}
+                <div
+                  style={{
+                    fontSize: 32,
+                    fontWeight: 900,
+                    color: '#ecfff6'
+                  }}
+                >
+                  {username}
+                </div>
+
+                <span
+                  style={{
+                    fontSize: 10,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    background: isScientist
+                      ? 'rgba(96,165,250,0.18)'
+                      : 'rgba(255,255,255,0.06)',
+                    border: isScientist
+                      ? '1px solid rgba(96,165,250,0.34)'
+                      : '1px solid rgba(255,255,255,0.10)',
+                    color: isScientist ? '#93c5fd' : '#9eb6ab',
+                    fontWeight: 800,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  {isScientist ? 'Scientist' : 'Explorer'}
+                </span>
               </div>
 
               <div
@@ -109,27 +182,44 @@ export default function ProfilePage({
               >
                 ID: {userId}
               </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 16,
+                  flexWrap: 'wrap',
+                  marginTop: 12,
+                  fontSize: 12,
+                  color: '#9ad0bb'
+                }}
+              >
+                <span>📍 {cityName}</span>
+                <span>🕐 Last active: {formatLastSeen(stats.latestSeenAt)}</span>
+                <span>🧬 {stats.uniqueSpecies} species recorded</span>
+              </div>
             </div>
 
-            <button
-              onClick={onLogout}
-              style={{
-                padding: '10px 16px',
-                borderRadius: 12,
-                border: '1px solid rgba(239,68,68,0.34)',
-                background:
-                  'linear-gradient(180deg, rgba(239,68,68,0.14) 0%, rgba(239,68,68,0.06) 100%)',
-                color: '#f87171',
-                fontWeight: 800,
-                fontSize: 12,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                cursor: 'pointer',
-                boxShadow: '0 0 18px rgba(239,68,68,0.08)'
-              }}
-            >
-              Logout
-            </button>
+            {!!onLogout && (
+              <button
+                onClick={onLogout}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(239,68,68,0.34)',
+                  background:
+                    'linear-gradient(180deg, rgba(239,68,68,0.14) 0%, rgba(239,68,68,0.06) 100%)',
+                  color: '#f87171',
+                  fontWeight: 800,
+                  fontSize: 12,
+                  letterSpacing: 1.5,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  boxShadow: '0 0 18px rgba(239,68,68,0.08)'
+                }}
+              >
+                Logout
+              </button>
+            )}
           </div>
         </div>
 
@@ -172,9 +262,9 @@ export default function ProfilePage({
           />
 
           <StatCard
-            label="Explorer Rank"
-            value="Field Scout"
-            color="#22c55e"
+            label="Role"
+            value={isScientist ? 'Scientist' : 'Explorer'}
+            color={isScientist ? '#60a5fa' : '#22c55e'}
           />
         </div>
       </div>

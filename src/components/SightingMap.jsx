@@ -374,12 +374,12 @@ export default function SightingMap({
                     </div>
 
                     <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginBottom: 3 }}>
-                      Found by: {s.username || s.observer || 'Anonymous'}
+                      Found by: {s.observer || 'Anonymous'}
                     </div>
 
                     <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 7 }}>
-                      {s.createdAt || s.observedAt
-                        ? `🕐 ${new Date(s.createdAt || s.observedAt).toLocaleString([], {
+                      {s.observedAt
+                        ? `🕐 ${new Date(s.observedAt).toLocaleString([], {
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
@@ -495,7 +495,7 @@ function EcoIntel({ sightings, userCoords }) {
       const t =
         s.timestamp?.toDate
           ? s.timestamp.toDate().getTime()
-          : new Date(s.createdAt || s.observedAt || 0).getTime()
+          : new Date(s.observedAt || 0).getTime()
       return now - t < 86400000
     })
 
@@ -528,7 +528,7 @@ function EcoIntel({ sightings, userCoords }) {
       const t =
         s.timestamp?.toDate
           ? s.timestamp.toDate().getTime()
-          : new Date(s.createdAt || s.observedAt || 0).getTime()
+          : new Date(s.observedAt || 0).getTime()
       return now - t < 3600000
     })
 

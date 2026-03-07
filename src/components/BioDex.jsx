@@ -48,15 +48,17 @@ export function addToBioDex(result, coords) {
   const key = (result.latin || result.name).toLowerCase()
   const dex = getBioDex()
   const isNew = !dex[key]
+  const safeEmoji = result.emoji || '🌱'
+
   dex[key] = {
     name: result.name,
     latin: result.latin || '',
-    emoji: result.emoji || '🌱',
+    emoji: safeEmoji,
     status: result.status || 'Unknown',
     statusCode: result.statusCode || '?',
     taxonId: result.taxonId || null,
     photo: result.photo || null,
-    category: getCategory(result.emoji),
+    category: getCategory(safeEmoji),
     discoveredAt: dex[key]?.discoveredAt || new Date().toISOString(),
     lat: dex[key]?.lat || coords?.lat || 0,
     lng: dex[key]?.lng || coords?.lng || 0,
@@ -89,12 +91,9 @@ export default function BioDex({ biodex }) {
   entries.forEach(e => { catCounts[e.category || 'other'] = (catCounts[e.category || 'other'] || 0) + 1 })
 
   const endangered = entries.filter(e => ['Endangered', 'Critically Endangered'].includes(e.status)).length
-  const rare = entries.filter(e => ['Near Threatened', 'Vulnerable'].includes(e.status)).length
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
-      {/* Header */}
       <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(52,211,153,0.15)', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
           <div>
@@ -104,7 +103,6 @@ export default function BioDex({ biodex }) {
           <div style={{ fontSize: 10, color: '#5a8a76', letterSpacing: 1 }}>/ 300 target</div>
         </div>
 
-        {/* Progress bar */}
         <div style={{ background: 'rgba(52,211,153,0.08)', borderRadius: 2, height: 3, marginBottom: 8 }}>
           <div style={{
             background: 'linear-gradient(90deg, #22c55e, #6ee7b7)',
@@ -114,7 +112,6 @@ export default function BioDex({ biodex }) {
           }} />
         </div>
 
-        {/* Rarity badges */}
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
           {[
             ['CE', '#dc2626', entries.filter(e => e.status === 'Critically Endangered').length],
@@ -139,7 +136,6 @@ export default function BioDex({ biodex }) {
         </div>
       </div>
 
-      {/* Category tabs */}
       <div style={{
         display: 'flex', overflowX: 'auto', padding: '6px 12px',
         gap: 4, flexShrink: 0, borderBottom: '1px solid rgba(52,211,153,0.08)',
@@ -162,7 +158,6 @@ export default function BioDex({ biodex }) {
         })}
       </div>
 
-      {/* Species grid */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
         {sorted.length === 0 && (
           <div style={{ textAlign: 'center', paddingTop: 40, color: '#2a4a3a' }}>
@@ -194,7 +189,6 @@ export default function BioDex({ biodex }) {
                   cursor: 'pointer', transition: 'all 0.15s'
                 }}
               >
-                {/* Photo or emoji */}
                 <div style={{
                   height: 64, background: `${color}08`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -227,7 +221,6 @@ export default function BioDex({ biodex }) {
                   )}
                 </div>
 
-                {/* Info */}
                 <div style={{ padding: '6px 7px' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#e2f5ee', lineHeight: 1.3, marginBottom: 1 }}>
                     {entry.emoji} {entry.name}

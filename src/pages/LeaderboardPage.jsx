@@ -1,14 +1,5 @@
 import { useMemo } from 'react'
 
-const STATUS_COLORS = {
-  'Least Concern': '#22c55e',
-  'Near Threatened': '#eab308',
-  'Vulnerable': '#f97316',
-  'Endangered': '#ef4444',
-  'Critically Endangered': '#dc2626',
-  'Unknown': '#60a5fa'
-}
-
 function getPlayerStatsFromSightings(sightings = []) {
   const byUser = {}
 
@@ -78,6 +69,38 @@ function getPlayerStatsFromSightings(sightings = []) {
     }))
 }
 
+function getPlayerStatsFromFirestore(entries = []) {
+  return entries
+    .map((e) => {
+      const lastScanTs =
+        e.lastScan?.toDate?.()?.getTime?.() ||
+        (e.lastScan ? new Date(e.lastScan).getTime() : 0) ||
+        0
+
+      return {
+        userId: e.id || e.userId || e.username,
+        username: e.username || 'Anonymous',
+        totalSightings: e.totalScans || 0,
+        rareFinds: e.rareFound || 0,
+        criticalFinds: e.endangeredFound || 0,
+        totalConfidence: 0,
+        score: e.totalPoints || 0,
+        latestSeenAt: lastScanTs,
+        uniqueSpecies: e.totalScans || 0,
+        avgConfidence: 0
+      }
+    })
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      if (b.rareFinds !== a.rareFinds) return b.rareFinds - a.rareFinds
+      return b.totalSightings - a.totalSightings
+    })
+    .map((p, i) => ({
+      ...p,
+      rank: i + 1
+    }))
+}
+
 function formatLastSeen(ts) {
   if (!ts) return 'No recent activity'
   const d = new Date(ts)
@@ -98,12 +121,12 @@ function getRankGlow(rank) {
   return '0 0 18px rgba(52,211,153,0.10)'
 }
 
-function PodiumCard({ player, height, currentUserId }) {
+function PodiumCard({ player, currentUserId }) {
   if (!player) {
     return (
       <div
         style={{
-          height,
+          height: 220,
           borderRadius: 18,
           border: '1px dashed rgba(140,199,174,0.18)',
           background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
@@ -126,7 +149,7 @@ function PodiumCard({ player, height, currentUserId }) {
   return (
     <div
       style={{
-        height,
+        minHeight: player.rank === 1 ? 260 : 220,
         borderRadius: 18,
         border: `1px solid ${isYou ? '#8b5cf6' : `${accent}44`}`,
         background: isYou
@@ -303,7 +326,10 @@ function LeaderRow({ player, currentUserId }) {
       <DataCell label="Score" value={player.score} valueColor={accent} />
       <DataCell label="Scans" value={player.totalSightings} />
       <DataCell label="Rare" value={player.rareFinds} />
-      <DataCell label="Confidence" value={`${player.avgConfidence}%`} />
+      <DataCell
+        label="Confidence"
+        value={player.avgConfidence > 0 ? `${player.avgConfidence}%` : '—'}
+      />
     </div>
   )
 }
@@ -336,11 +362,28 @@ function DataCell({ label, value, valueColor = '#ecfff6' }) {
   )
 }
 
-export default function LeaderboardPage({ sightings = [], userId }) {
-  const leaderboard = useMemo(() => getPlayerStatsFromSightings(sightings), [sightings])
+export default function LeaderboardPage({
+  sightings = [],
+  leaderboardEntries = [],
+  userId
+}) {
+  const firestoreLeaderboard = useMemo(
+    () => getPlayerStatsFromFirestore(leaderboardEntries),
+    [leaderboardEntries]
+  )
+
+  const derivedLeaderboard = useMemo(
+    () => getPlayerStatsFromSightings(sightings),
+    [sightings]
+  )
+
+  const leaderboard =
+    firestoreLeaderboard.length > 0 ? firestoreLeaderboard : derivedLeaderboard
 
   const topThree = leaderboard.slice(0, 3)
-  const currentUserEntry = leaderboard.find((p) => p.userId === userId)
+  const currentUserEntry =
+    leaderboard.find((p) => p.userId === userId) || null
+
   const totalRareSightings = sightings.filter((s) =>
     ['Vulnerable', 'Endangered', 'Critically Endangered'].includes(s.status)
   ).length
@@ -364,7 +407,6 @@ export default function LeaderboardPage({ sightings = [], userId }) {
           margin: '0 auto'
         }}
       >
-        {/* Hero / header */}
         <div
           style={{
             position: 'relative',
@@ -484,7 +526,6 @@ export default function LeaderboardPage({ sightings = [], userId }) {
           </div>
         </div>
 
-        {/* Podium */}
         <div
           style={{
             display: 'grid',
@@ -493,12 +534,11 @@ export default function LeaderboardPage({ sightings = [], userId }) {
             marginBottom: 22
           }}
         >
-          <PodiumCard player={topThree[1]} height={220} currentUserId={userId} />
-          <PodiumCard player={topThree[0]} height={260} currentUserId={userId} />
-          <PodiumCard player={topThree[2]} height={220} currentUserId={userId} />
+          <PodiumCard player={topThree[1]} currentUserId={userId} />
+          <PodiumCard player={topThree[0]} currentUserId={userId} />
+          <PodiumCard player={topThree[2]} currentUserId={userId} />
         </div>
 
-        {/* Full table */}
         <div
           style={{
             borderRadius: 20,

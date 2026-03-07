@@ -1,17 +1,10 @@
 import { useMemo } from 'react'
 
-const STATUS_COLORS = {
-  'Least Concern': '#22c55e',
-  'Near Threatened': '#eab308',
-  'Vulnerable': '#f97316',
-  'Endangered': '#ef4444',
-  'Critically Endangered': '#dc2626',
-  'Unknown': '#60a5fa'
-}
-
 function isToday(dateValue) {
   if (!dateValue) return false
   const d = new Date(dateValue)
+  if (Number.isNaN(d.getTime())) return false
+
   const now = new Date()
   return (
     d.getFullYear() === now.getFullYear() &&
@@ -23,6 +16,8 @@ function isToday(dateValue) {
 function isThisWeek(dateValue) {
   if (!dateValue) return false
   const d = new Date(dateValue)
+  if (Number.isNaN(d.getTime())) return false
+
   const now = new Date()
 
   const start = new Date(now)
@@ -36,7 +31,10 @@ function isThisWeek(dateValue) {
 }
 
 function getTimeValue(s) {
-  return s.createdAt || s.observedAt || s.timestamp || null
+  if (s.observedAt) return s.observedAt
+  if (s.createdAt) return s.createdAt
+  if (s.timestamp?.toDate) return s.timestamp.toDate().toISOString()
+  return null
 }
 
 function getMissionStats(sightings = []) {
