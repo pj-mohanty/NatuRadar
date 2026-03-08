@@ -16,7 +16,6 @@ const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
@@ -26,6 +25,38 @@ export const db = getFirestore(app)
 
 export function normalizeUsername(username = '') {
   return username.trim().toLowerCase()
+}
+
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024 // 5MB
+
+/**
+ * Upload a base64 JPEG to Cloudinary via server-side proxy.
+ * Validates image type and size before uploading.
+ * Returns the public image URL.
+ */
+export async function uploadSightingPhoto(base64Image) {
+  // Validate it's a JPEG or PNG data URL
+  if (!base64Image.startsWith('data:image/jpeg') && !base64Image.startsWith('data:image/png')) {
+    throw new Error('Only JPEG and PNG images are allowed')
+  }
+
+  // Check size (base64 is ~33% larger than binary, so rough estimate)
+  const sizeEstimate = Math.ceil((base64Image.length - base64Image.indexOf(',') - 1) * 0.75)
+  if (sizeEstimate > MAX_PHOTO_SIZE) {
+    throw new Error('Image exceeds 5MB limit')
+  }
+
+  const res = await fetch('/api/upload-photo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64Image })
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error || 'Upload failed')
+  }
+  const data = await res.json()
+  return data.url
 }
 
 export async function saveSighting(species, coords, username) {

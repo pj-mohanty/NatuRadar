@@ -93,7 +93,7 @@ export default function MyLogPage({ sightings = [] }) {
       status: s.status || 'Unknown',
       statusCode: s.statusCode || 'UN',
       taxonId: s.taxonId || null,
-      photo: s.photo || null,
+      photo: s.userPhoto || s.photo || null,
       confidence: s.confidence ?? 0,
       discoveredAt: s.observedAt || s.createdAt || null,
       lat: s.lat,
