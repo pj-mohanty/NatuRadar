@@ -128,6 +128,7 @@ export default function MyLogPage({ sightings = [] }) {
 
   return (
     <div
+      className="mylog-root"
       style={{
         height: '100%',
         display: 'grid',
@@ -148,9 +149,39 @@ export default function MyLogPage({ sightings = [] }) {
             transform: translateX(0);
           }
         }
+
+        @media (max-width: 768px) {
+          .mylog-root { height: auto !important; overflow: visible !important; }
+          .mylog-inner { overflow: visible !important; }
+          .mylog-scroll-area { overflow: visible !important; flex: none !important; }
+
+          .mylog-stat-chips { flex-wrap: nowrap !important; gap: 5px !important; }
+          .mylog-stat-chip {
+            flex: 1 !important;
+            min-width: 0 !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            padding: 5px 6px !important;
+            align-items: center !important;
+          }
+          .mylog-stat-chip-value { font-size: 11px !important; }
+          .mylog-stat-chip-label { font-size: 8px !important; letter-spacing: 0.5px !important; }
+
+          .mylog-filter-tabs { flex-wrap: nowrap !important; gap: 6px !important; }
+          .mylog-filter-tab {
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding: 7px 6px !important;
+            justify-content: center !important;
+            gap: 4px !important;
+          }
+          .mylog-filter-tab-label { font-size: 10px !important; }
+          .mylog-filter-tab-count { font-size: 9px !important; min-width: 16px !important; height: 16px !important; }
+        }
       `}</style>
 
       <div
+        className="mylog-inner"
         style={{
           minWidth: 0,
           display: 'flex',
@@ -245,6 +276,7 @@ export default function MyLogPage({ sightings = [] }) {
             </div>
 
             <div
+              className="mylog-stat-chips"
               style={{
                 marginTop: 12,
                 display: 'flex',
@@ -261,6 +293,7 @@ export default function MyLogPage({ sightings = [] }) {
         </div>
 
         <div
+          className="mylog-filter-tabs"
           style={{
             display: 'flex',
             gap: 10,
@@ -295,6 +328,7 @@ export default function MyLogPage({ sightings = [] }) {
         </div>
 
         <div
+          className="mylog-scroll-area"
           style={{
             flex: 1,
             overflowY: 'scroll',
@@ -439,6 +473,7 @@ export default function MyLogPage({ sightings = [] }) {
 function StatChip({ label, value, color }) {
   return (
     <div
+      className="mylog-stat-chip"
       style={{
         background: `${color}12`,
         border: `1px solid ${color}26`,
@@ -449,8 +484,9 @@ function StatChip({ label, value, color }) {
         gap: 8
       }}
     >
-      <span style={{ fontSize: 11, color, fontWeight: 800 }}>{value}</span>
+      <span className="mylog-stat-chip-value" style={{ fontSize: 11, color, fontWeight: 800 }}>{value}</span>
       <span
+        className="mylog-stat-chip-label"
         style={{
           fontSize: 10,
           color: '#b7e8d2',
@@ -468,6 +504,7 @@ function StatChip({ label, value, color }) {
 function FilterTab({ label, icon, count, active, onClick }) {
   return (
     <button
+      className="mylog-filter-tab"
       onClick={onClick}
       style={{
         padding: '9px 16px',
@@ -487,6 +524,7 @@ function FilterTab({ label, icon, count, active, onClick }) {
     >
       <span style={{ fontSize: 16 }}>{icon}</span>
       <span
+        className="mylog-filter-tab-label"
         style={{
           fontSize: 12,
           fontWeight: 800,
@@ -497,6 +535,7 @@ function FilterTab({ label, icon, count, active, onClick }) {
         {label}
       </span>
       <span
+        className="mylog-filter-tab-count"
         style={{
           minWidth: 20,
           height: 20,

@@ -188,9 +188,11 @@ export default function HomePage({
 
   return (
     <div
+      className="homepage-root"
       style={{
         display: 'grid',
         gridTemplateColumns: '432px 1fr',
+        gridTemplateRows: 'auto 1fr',
         height: '100%',
         overflow: 'hidden',
         background:
@@ -208,22 +210,60 @@ export default function HomePage({
           0% { transform: translateX(-120%); }
           100% { transform: translateX(120%); }
         }
+
+        .homepage-scanner { grid-column: 1; grid-row: 1; }
+        .homepage-species { grid-column: 1; grid-row: 2; }
+        .homepage-map { grid-column: 2; grid-row: 1 / span 2; }
+
+        @media (max-width: 768px) {
+          .homepage-root {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto auto auto !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+          .homepage-scanner {
+            grid-column: 1 !important;
+            grid-row: 1 !important;
+            border-right: none !important;
+            overflow: visible !important;
+          }
+          .homepage-map {
+            grid-column: 1 !important;
+            grid-row: 2 !important;
+            height: 60vh !important;
+            min-height: 320px !important;
+            overflow: hidden !important;
+            border-right: none !important;
+          }
+          .homepage-species {
+            grid-column: 1 !important;
+            grid-row: 3 !important;
+            overflow-y: visible !important;
+            border-right: none !important;
+          }
+          .map-confidence-filter { display: none !important; }
+          .map-system-status { display: none !important; }
+          .map-ecosystem-pulse { display: none !important; }
+          .map-location-pin { display: none !important; }
+          .map-filter-row { flex-direction: column !important; }
+          .map-search-input { width: 100% !important; box-sizing: border-box !important; }
+          .map-status-filter { width: 100% !important; box-sizing: border-box !important; }
+        }
       `}</style>
 
-      {/* Sidebar */}
+      {/* Scanner section */}
       <div
+        className="homepage-scanner"
         style={{
           position: 'relative',
           borderRight: '1px solid rgba(52,211,153,0.15)',
           display: 'flex',
           flexDirection: 'column',
-          overflowY: 'auto',
           overflowX: 'hidden',
           background:
             'linear-gradient(180deg, rgba(4,10,8,0.98) 0%, rgba(8,18,14,0.98) 45%, rgba(6,14,11,0.99) 100%)',
           boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.03), 0 0 40px rgba(0,0,0,0.25)',
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#34d399 rgba(0,0,0,0.2)'
         }}
       >
         <div
@@ -291,37 +331,11 @@ export default function HomePage({
             <Scanner onResult={handleScan} />
           </div>
         </div>
-
-        <SpeciesOfDay foundToday={sotdFoundToday} />
-
-        <div
-          style={{
-            padding: '12px 16px 8px',
-            borderBottom: '1px solid rgba(52,211,153,0.12)',
-            position: 'relative',
-            zIndex: 1
-          }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              letterSpacing: 3,
-              color: '#8bc7ae',
-              textTransform: 'uppercase',
-              fontWeight: 800
-            }}
-          >
-            Scores
-          </div>
-        </div>
-
-        <div style={{ paddingBottom: 20, position: 'relative', zIndex: 1 }}>
-          <UserStats stats={userStats} cityName={cityName} />
-        </div>
       </div>
 
       {/* Map / main home visual */}
       <div
+        className="homepage-map"
         style={{
           position: 'relative',
           overflow: 'hidden'
@@ -387,6 +401,7 @@ export default function HomePage({
           }}
         >
           <div
+            className="map-filter-row"
             style={{
               display: 'flex',
               gap: 10,
@@ -395,6 +410,7 @@ export default function HomePage({
             }}
           >
             <input
+              className="map-search-input"
               value={speciesSearch}
               onChange={(e) => setSpeciesSearch(e.target.value)}
               placeholder="Search species..."
@@ -412,6 +428,7 @@ export default function HomePage({
             />
 
             <select
+              className="map-status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               style={{
@@ -434,6 +451,7 @@ export default function HomePage({
             </select>
 
             <label
+              className="map-confidence-filter"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -470,6 +488,7 @@ export default function HomePage({
         {showRadarPulse && <RadarPulse />}
 
         <div
+          className="map-location-pin"
           style={{
             position: 'absolute',
             top: 72,
@@ -491,6 +510,7 @@ export default function HomePage({
         </div>
 
         <div
+          className="map-system-status"
           style={{
             position: 'absolute',
             top: 72,
@@ -512,6 +532,7 @@ export default function HomePage({
         </div>
 
         <div
+          className="map-ecosystem-pulse"
           style={{
             position: 'absolute',
             left: 16,
@@ -572,6 +593,63 @@ export default function HomePage({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Species / Stats section */}
+      <div
+        className="homepage-species"
+        style={{
+          position: 'relative',
+          borderRight: '1px solid rgba(52,211,153,0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          background:
+            'linear-gradient(180deg, rgba(4,10,8,0.98) 0%, rgba(8,18,14,0.98) 45%, rgba(6,14,11,0.99) 100%)',
+          boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.03), 0 0 40px rgba(0,0,0,0.25)',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#34d399 rgba(0,0,0,0.2)'
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(rgba(52,211,153,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.03) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+            opacity: 0.22
+          }}
+        />
+
+        <SpeciesOfDay foundToday={sotdFoundToday} />
+
+        <div
+          style={{
+            padding: '12px 16px 8px',
+            borderBottom: '1px solid rgba(52,211,153,0.12)',
+            position: 'relative',
+            zIndex: 1
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: 3,
+              color: '#8bc7ae',
+              textTransform: 'uppercase',
+              fontWeight: 800
+            }}
+          >
+            Scores
+          </div>
+        </div>
+
+        <div style={{ paddingBottom: 20, position: 'relative', zIndex: 1 }}>
+          <UserStats stats={userStats} cityName={cityName} />
+        </div>
       </div>
 
       {selected && (

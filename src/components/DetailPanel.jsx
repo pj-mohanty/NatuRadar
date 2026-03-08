@@ -318,6 +318,10 @@ export default function DetailPanel({
           0% { transform: translateX(-130%); }
           100% { transform: translateX(130%); }
         }
+
+        @media (max-width: 768px) {
+          .detail-btn { width: 44px !important; height: 44px !important; font-size: 16px !important; }
+        }
       `}</style>
 
       <div
@@ -795,7 +799,7 @@ export default function DetailPanel({
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={110}
+                    width={isMobile ? 80 : 110}
                     tick={{ fill: '#5a8a76', fontSize: 9 }}
                   />
                   <Tooltip
@@ -969,6 +973,7 @@ function Badge({ text, color }) {
 function Btn({ onClick, label, color, disabled, title }) {
   return (
     <button
+      className="detail-btn"
       onClick={onClick}
       disabled={disabled}
       title={title}

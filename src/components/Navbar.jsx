@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 function NavItem({ icon, label, active, onClick }) {
   return (
     <button
+      className="nav-item"
       onClick={onClick}
       style={{
         minWidth: 128,
@@ -120,6 +121,40 @@ export default function Navbar({
         50% { opacity: 0.6; }
         100% { opacity: 0.35; }
       }
+
+      @media (max-width: 768px) {
+        .navbar-root {
+          grid-template-columns: 1fr auto !important;
+          grid-template-rows: auto auto !important;
+          min-height: auto !important;
+          gap: 8px 0 !important;
+          padding: 10px 12px !important;
+        }
+        .navbar-left { grid-column: 1 !important; grid-row: 1 !important; }
+        .navbar-right { grid-column: 2 !important; grid-row: 1 !important; }
+        .navbar-center {
+          grid-column: 1 / -1 !important;
+          grid-row: 2 !important;
+          justify-content: space-evenly !important;
+          gap: 6px !important;
+        }
+        .navbar-center .nav-item {
+          flex: 1 !important;
+          min-width: 0 !important;
+          height: 50px !important;
+          min-height: 50px !important;
+          padding: 6px 4px !important;
+          font-size: 9px !important;
+        }
+        .navbar-title { font-size: 22px !important; }
+        .navbar-meta { font-size: 10px !important; margin-top: 3px !important; }
+        .navbar-right .nav-item {
+          height: 48px !important;
+          min-height: 48px !important;
+          min-width: 64px !important;
+          padding: 6px 10px !important;
+        }
+      }
     `
     document.head.appendChild(style)
     return () => document.head.removeChild(style)
@@ -127,6 +162,7 @@ export default function Navbar({
 
   return (
     <div
+      className="navbar-root"
       style={{
         position: 'relative',
         minHeight: 96,
@@ -181,6 +217,7 @@ export default function Navbar({
 
       {/* LEFT */}
       <div
+        className="navbar-left"
         onClick={() => navigate('home')}
         style={{
           cursor: 'pointer',
@@ -191,6 +228,7 @@ export default function Navbar({
         }}
       >
         <div
+          className="navbar-title"
           style={{
             fontSize: 34,
             fontWeight: 900,
@@ -203,6 +241,7 @@ export default function Navbar({
         </div>
 
         <div
+          className="navbar-meta"
           style={{
             display: 'flex',
             gap: 10,
@@ -220,6 +259,7 @@ export default function Navbar({
 
       {/* CENTER */}
       <div
+        className="navbar-center"
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -252,6 +292,7 @@ export default function Navbar({
 
       {/* RIGHT */}
       <div
+        className="navbar-right"
         style={{
           display: 'flex',
           justifyContent: 'flex-end',

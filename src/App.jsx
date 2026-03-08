@@ -154,6 +154,7 @@ export default function App() {
 
   return (
     <div
+      className="app-root"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -164,6 +165,12 @@ export default function App() {
         color: '#e2f5ee'
       }}
     >
+      <style>{`
+        @media (max-width: 768px) {
+          .app-root { overflow-y: auto !important; height: auto !important; min-height: 100vh !important; }
+          .app-content { overflow: visible !important; flex: none !important; }
+        }
+      `}</style>
       {showUsernameModal && (
         <div
           style={{
@@ -263,7 +270,7 @@ export default function App() {
         sightingsCount={sightings.length}
       />
 
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div className="app-content" style={{ flex: 1, overflow: 'hidden' }}>
         {currentPage === 'home' && (
           <HomePage
             coords={coords}
