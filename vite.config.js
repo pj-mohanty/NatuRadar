@@ -7,12 +7,12 @@ function apiProxyPlugin() {
   return {
     name: 'api-proxy',
     configResolved(config) {
-      const env = loadEnv(config.mode, config.root)
-      anthropicKey = env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY
-      inatToken = env.INAT_TOKEN || process.env.INAT_TOKEN
-      cloudinaryCloudName = env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME
-      cloudinaryApiKey = env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY
-      cloudinaryApiSecret = env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_API_SECRET
+      const env = loadEnv(config.mode, config.root, '')
+      anthropicKey = env.ANTHROPIC_API_KEY
+      inatToken = env.INAT_TOKEN
+      cloudinaryCloudName = env.CLOUDINARY_CLOUD_NAME
+      cloudinaryApiKey = env.CLOUDINARY_API_KEY
+      cloudinaryApiSecret = env.CLOUDINARY_API_SECRET
     },
     configureServer(server) {
       // /api/claude → Anthropic Messages API

@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import Webcam from 'react-webcam'
 import { motion, AnimatePresence } from 'framer-motion'
 import { identifySpecies } from '../services/inatAPI'
 
@@ -11,30 +10,49 @@ const BRACKETS = [
 ]
 
 export default function Scanner({ onResult }) {
-  const cam = useRef(null)
+  const fileInput = useRef(null)
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState(null)
-  const [cameraActive, setCameraActive] = useState(false)
+  const [preview, setPreview] = useState(null) // base64 of selected image
 
-  const scan = async () => {
-    if (scanning) return
-    setScanning(true)
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
     setError(null)
-    try {
-      const img = cam.current.getScreenshot()
-      if (!img) throw new Error('Could not capture image')
-      const result = await identifySpecies(img)
-      if (result) onResult(result, img)
-      else setError('Could not identify — try again')
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setScanning(false)
+
+    // Read file as base64 data URL
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const img = ev.target.result
+      setPreview(img)
+      setScanning(true)
+      try {
+        const result = await identifySpecies(img)
+        if (result) onResult(result, img)
+        else setError('Could not identify — try a clearer photo')
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setScanning(false)
+        // Reset so same file can be re-selected
+        e.target.value = ''
+      }
     }
+    reader.readAsDataURL(file)
   }
 
   return (
     <div style={{ width: '100%' }}>
+      {/* Hidden file input — accepts camera or gallery on mobile */}
+      <input
+        ref={fileInput}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handleFile}
+      />
+
       {/* Viewport */}
       <div style={{
         position: 'relative', width: '100%', paddingBottom: '72%',
@@ -50,17 +68,15 @@ export default function Scanner({ onResult }) {
             backgroundSize: '28px 28px',
           }} />
 
-          {/* Webcam or standby icon */}
-          {cameraActive ? (
-            <Webcam
-              ref={cam}
-              screenshotFormat="image/jpeg"
-              screenshotQuality={0.8}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.88 }}
+          {/* Preview or standby */}
+          {preview ? (
+            <img
+              src={preview}
+              alt="captured"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: scanning ? 0.5 : 0.88 }}
             />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {/* Pulsing rings (standby) */}
               {[50, 80, 115].map((size, i) => (
                 <motion.div key={i} style={{
                   position: 'absolute',
@@ -70,7 +86,6 @@ export default function Scanner({ onResult }) {
                 }} animate={{ scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.35, ease: 'easeInOut' }} />
               ))}
-              {/* Center icon */}
               <motion.div
                 animate={{ scale: [1, 1.06, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
@@ -81,7 +96,7 @@ export default function Scanner({ onResult }) {
             </div>
           )}
 
-          {/* Scan line — always animating, faster when scanning */}
+          {/* Scan line */}
           <motion.div style={{
             position: 'absolute', left: 0, right: 0, height: 2,
             background: 'linear-gradient(90deg, transparent 0%, rgba(52,211,153,0.2) 15%, #34d399 50%, rgba(52,211,153,0.2) 85%, transparent 100%)',
@@ -118,7 +133,7 @@ export default function Scanner({ onResult }) {
             color: scanning ? '#34d399' : 'rgba(52,211,153,0.35)',
             fontWeight: 600,
           }}>
-            {scanning ? 'ANALYZING...' : cameraActive ? 'READY' : 'STANDBY'}
+            {scanning ? 'ANALYZING...' : preview ? 'READY' : 'STANDBY'}
           </div>
 
           {/* Top-left label */}
@@ -132,44 +147,23 @@ export default function Scanner({ onResult }) {
         </div>
       </div>
 
-      {/* Buttons */}
-      <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-        {/* Take Picture — always visible, triggers camera permission */}
-        <button
-          onClick={() => setCameraActive(true)}
-          disabled={scanning}
-          style={{
-            flex: 1, padding: '11px 0',
-            background: cameraActive ? 'rgba(251,191,36,0.06)' : 'transparent',
-            border: '1px solid #fbbf24', color: '#fbbf24',
-            fontWeight: 700, fontSize: 12, letterSpacing: 2,
-            textTransform: 'uppercase', cursor: scanning ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            borderRadius: 2, opacity: scanning ? 0.4 : 1,
-          }}
-        >
-          <span>📷</span> TAKE PICTURE
-        </button>
-
-        {/* Identify — only active once camera is on */}
-        <button
-          onClick={scan}
-          disabled={!cameraActive || scanning}
-          style={{
-            flex: 1, padding: '11px 0',
-            background: scanning ? 'rgba(52,211,153,0.08)' : 'transparent',
-            border: '1px solid #34d399', color: '#34d399',
-            fontWeight: 700, fontSize: 12, letterSpacing: 2,
-            textTransform: 'uppercase',
-            cursor: !cameraActive || scanning ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            borderRadius: 2, opacity: !cameraActive ? 0.3 : 1,
-          }}
-        >
-          <span>{scanning ? '⟳' : '▶'}</span>
-          {scanning ? 'SCANNING...' : 'IDENTIFY'}
-        </button>
-      </div>
+      {/* Single button — opens camera/gallery */}
+      <button
+        onClick={() => fileInput.current?.click()}
+        disabled={scanning}
+        style={{
+          width: '100%', marginTop: 8, padding: '11px 0',
+          background: scanning ? 'rgba(52,211,153,0.08)' : 'transparent',
+          border: '1px solid #34d399', color: '#34d399',
+          fontWeight: 700, fontSize: 12, letterSpacing: 2,
+          textTransform: 'uppercase', cursor: scanning ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          borderRadius: 2, opacity: scanning ? 0.4 : 1,
+        }}
+      >
+        <span>{scanning ? '⟳' : '📷'}</span>
+        {scanning ? 'SCANNING...' : 'TAKE PHOTO / UPLOAD'}
+      </button>
 
       {error && (
         <p style={{ color: '#f87171', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
