@@ -15,26 +15,39 @@ export default function Scanner({ onResult }) {
   const [error, setError] = useState(null)
   const [preview, setPreview] = useState(null) // base64 of selected image
 
+  // Converts any image file to a JPEG data URL via canvas.
+  // Ensures consistent format for iNat identify and Cloudinary upload.
+  const toJpeg = (dataUrl) => new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      canvas.getContext('2d').drawImage(img, 0, 0)
+      resolve(canvas.toDataURL('image/jpeg', 0.85))
+    }
+    img.onerror = reject
+    img.src = dataUrl
+  })
+
   const handleFile = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     setError(null)
 
-    // Read file as base64 data URL
     const reader = new FileReader()
     reader.onload = async (ev) => {
-      const img = ev.target.result
-      setPreview(img)
-      setScanning(true)
       try {
-        const result = await identifySpecies(img)
-        if (result) onResult(result, img)
+        const jpeg = await toJpeg(ev.target.result)
+        setPreview(jpeg)
+        setScanning(true)
+        const result = await identifySpecies(jpeg)
+        if (result) onResult(result, jpeg)
         else setError('Could not identify — try a clearer photo')
       } catch (err) {
-        setError(err.message)
+        setError(err.message || 'Failed to process image')
       } finally {
         setScanning(false)
-        // Reset so same file can be re-selected
         e.target.value = ''
       }
     }
