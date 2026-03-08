@@ -160,8 +160,23 @@ export default function SightingMap({
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .map-satellite-btn { display: none !important; }
+          .map-controls-row {
+            left: 16px !important;
+            bottom: 16px !important;
+            top: auto !important;
+            transform: none !important;
+          }
+          .map-conservation-legend { display: none !important; }
+          .map-atrisk-counter { display: none !important; }
+          .map-eco-intel { display: none !important; }
+        }
+      `}</style>
       {/* Map controls */}
       <div
+        className="map-controls-row"
         style={{
           position: 'absolute',
           top: 12,
@@ -176,6 +191,7 @@ export default function SightingMap({
         }}
       >
         <button
+          className="map-satellite-btn"
           onClick={() => setUseSatellite(s => !s)}
           style={controlBtnStyle(useSatellite, '#60a5fa')}
         >
@@ -183,6 +199,7 @@ export default function SightingMap({
         </button>
 
         <button
+          className="map-heatmap-btn"
           onClick={() => setHeatmapOn(h => !h)}
           style={controlBtnStyle(heatmapOn, '#22c55e')}
         >
@@ -404,6 +421,7 @@ export default function SightingMap({
 
       {/* Legend */}
       <div
+        className="map-conservation-legend"
         style={{
           position: 'absolute',
           bottom: 20,
@@ -447,6 +465,7 @@ export default function SightingMap({
 
       {/* At-risk counter */}
       <div
+        className="map-atrisk-counter"
         style={{
           position: 'absolute',
           bottom: 20,
@@ -543,7 +562,7 @@ function EcoIntel({ sightings, userCoords }) {
 
   if (collapsed) {
     return (
-      <div style={{ position: 'absolute', bottom: 68, left: 20, zIndex: 1000 }}>
+      <div className="map-eco-intel" style={{ position: 'absolute', bottom: 68, left: 20, zIndex: 1000 }}>
         <button
           onClick={() => setCollapsed(false)}
           style={{
@@ -566,6 +585,7 @@ function EcoIntel({ sightings, userCoords }) {
 
   return (
     <div
+      className="map-eco-intel"
       style={{
         position: 'absolute',
         top: 56,
