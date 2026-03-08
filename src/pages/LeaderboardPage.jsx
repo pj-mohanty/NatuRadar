@@ -850,7 +850,7 @@ export default function LeaderboardPage({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '340px minmax(0, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
           gap: 24,
           padding: 24
         }}
@@ -983,7 +983,7 @@ export default function LeaderboardPage({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '1.1fr 0.9fr',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
               gap: 18
             }}
           >

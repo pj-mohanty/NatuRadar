@@ -323,7 +323,7 @@ export default function MissionPage({ sightings = [], cityName = 'Your Area' }) 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.1fr 1.1fr 0.9fr',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
             gap: 18
           }}
         >
