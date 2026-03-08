@@ -24,7 +24,7 @@ export default function Scanner({ onResult }) {
       const img = cam.current.getScreenshot()
       if (!img) throw new Error('Could not capture image')
       const result = await identifySpecies(img)
-      if (result) onResult(result)
+      if (result) onResult(result, img)
       else setError('Could not identify — try again')
     } catch (e) {
       setError(e.message)

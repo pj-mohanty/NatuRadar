@@ -44,7 +44,7 @@ function getCategory(emoji) {
   return EMOJI_CATEGORY[emoji] || 'other'
 }
 
-export function addToBioDex(result, coords) {
+export function addToBioDex(result, coords, userPhoto) {
   const key = (result.latin || result.name).toLowerCase()
   const dex = getBioDex()
   const isNew = !dex[key]
@@ -58,6 +58,7 @@ export function addToBioDex(result, coords) {
     statusCode: result.statusCode || '?',
     taxonId: result.taxonId || null,
     photo: result.photo || null,
+    userPhoto: userPhoto || dex[key]?.userPhoto || null,
     category: getCategory(safeEmoji),
     discoveredAt: dex[key]?.discoveredAt || new Date().toISOString(),
     lat: dex[key]?.lat || coords?.lat || 0,

@@ -1,14 +1,10 @@
-const INAT_TOKEN = import.meta.env.VITE_INAT_TOKEN
-
 const taxonCache = new Map()
 
 export async function fetchTaxonData(taxonId) {
   if (!taxonId) return null
   if (taxonCache.has(taxonId)) return taxonCache.get(taxonId)
   try {
-    const res = await fetch(`https://api.inaturalist.org/v1/taxa/${taxonId}`, {
-      headers: { 'Authorization': `Bearer ${INAT_TOKEN}` }
-    })
+    const res = await fetch(`/api/inat-taxon?id=${taxonId}`)
     if (!res.ok) return null
     const data = await res.json()
     const taxon = data.results?.[0]
@@ -33,14 +29,10 @@ export async function identifySpecies(base64Image) {
     const formData = new FormData()
     formData.append('image', blob, 'photo.jpg')
 
-    const res = await fetch(
-      'https://api.inaturalist.org/v1/computervision/score_image',
-      {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${INAT_TOKEN}` },
-        body: formData
-      }
-    )
+    const res = await fetch('/api/inat-identify', {
+      method: 'POST',
+      body: formData
+    })
 
     if (!res.ok) throw new Error(`API error: ${res.status}`)
     const data = await res.json()
