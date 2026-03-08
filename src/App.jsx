@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { listenSightings, listenLeaderboard } from './services/firebase'
+import { listenSightings, listenLeaderboard, normalizeUsername } from './services/firebase'
 import HomePage from './pages/HomePage'
 import MyLogPage from './pages/MyLogPage'
 import MissionPage from './pages/Mission'
@@ -7,15 +7,6 @@ import LeaderboardPage from './pages/LeaderboardPage'
 import Navbar from './components/Navbar'
 import 'leaflet/dist/leaflet.css'
 import ProfilePage from './pages/ProfilePage'
-
-function getOrCreateUserId() {
-  let id = localStorage.getItem('species_signal_userid')
-  if (!id) {
-    id = 'u_' + Math.random().toString(36).slice(2, 11)
-    localStorage.setItem('species_signal_userid', id)
-  }
-  return id
-}
 
 function getStatusCode(status) {
   return (
@@ -37,6 +28,11 @@ function normalizeSighting(s) {
     (s.timestamp?.toDate ? s.timestamp.toDate().toISOString() : null) ||
     null
 
+  const numericConfidence =
+    typeof s.confidence === 'number'
+      ? s.confidence
+      : Number(s.confidence)
+
   return {
     ...s,
     id: s.id || `${s.name || 'species'}-${s.lat}-${s.lng}-${observedAt || 'time'}`,
@@ -45,9 +41,10 @@ function normalizeSighting(s) {
     emoji: s.emoji || '🌿',
     status: s.status || 'Unknown',
     statusCode: s.statusCode || getStatusCode(s.status),
-    confidence: typeof s.confidence === 'number' ? s.confidence : 0,
+    confidence: Number.isFinite(numericConfidence) ? numericConfidence : 0,
     observer: s.observer || s.username || 'Explorer',
     username: s.username || s.observer || 'Explorer',
+    usernameKey: s.usernameKey || normalizeUsername(s.username || s.observer || 'Explorer'),
     photo: s.photo || null,
     lat: Number(s.lat),
     lng: Number(s.lng),
@@ -63,7 +60,6 @@ export default function App() {
   const [leaderboardEntries, setLeaderboardEntries] = useState([])
   const [coords, setCoords] = useState(null)
   const [cityName, setCityName] = useState('Locating...')
-  const [userId] = useState(() => getOrCreateUserId())
   const [username, setUsername] = useState(
     () => localStorage.getItem('species_signal_username') || ''
   )
@@ -71,7 +67,9 @@ export default function App() {
   const [isScientist] = useState(
     () => localStorage.getItem('species_signal_is_scientist') === 'true'
   )
+
   const showUsernameModal = !username
+  const userId = useMemo(() => normalizeUsername(username), [username])
 
   const sightings = useMemo(
     () =>
@@ -81,11 +79,36 @@ export default function App() {
     [rawSightings]
   )
 
+  const mySightings = useMemo(() => {
+    if (!userId) return []
+    return sightings.filter((s) => s.usernameKey === userId)
+  }, [sightings, userId])
+
+  const myLeaderboardEntry = useMemo(
+    () => leaderboardEntries.find(e => e.usernameKey === userId) || null,
+    [leaderboardEntries, userId]
+  )
+
   const saveUsername = () => {
     const name = usernameInput.trim()
     if (!name) return
+
+    const usernameKey = normalizeUsername(name)
+
     localStorage.setItem('species_signal_username', name)
+    localStorage.setItem('species_signal_username_key', usernameKey)
+
     setUsername(name)
+    setUsernameInput('')
+    setCurrentPage('home')
+  }
+
+  const logout = () => {
+    localStorage.removeItem('species_signal_username')
+    localStorage.removeItem('species_signal_username_key')
+    setUsername('')
+    setUsernameInput('')
+    setCurrentPage('home')
   }
 
   useEffect(() => {
@@ -102,9 +125,9 @@ export default function App() {
           const data = await res.json()
           setCityName(
             data.address?.city ||
-            data.address?.town ||
-            data.address?.village ||
-            'Your Area'
+              data.address?.town ||
+              data.address?.village ||
+              'Your Area'
           )
         } catch {
           setCityName('Your Area')
@@ -225,7 +248,7 @@ export default function App() {
                 borderRadius: 6
               }}
             >
-              START EXPLORING
+              Start Exploring
             </button>
           </div>
         </div>
@@ -254,13 +277,13 @@ export default function App() {
           <MyLogPage
             userId={userId}
             userCoords={coords}
-            sightings={sightings}
+            sightings={mySightings}
           />
         )}
 
         {currentPage === 'missions' && (
           <MissionPage
-            sightings={sightings}
+            sightings={mySightings}
             cityName={cityName}
           />
         )}
@@ -275,11 +298,12 @@ export default function App() {
 
         {currentPage === 'profile' && (
           <ProfilePage
-            sightings={sightings}
+            sightings={mySightings}
             username={username}
             userId={userId}
             cityName={cityName}
             isScientist={isScientist}
+            onLogout={logout}
           />
         )}
       </div>

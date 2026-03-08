@@ -1,15 +1,10 @@
 import { useMemo } from 'react'
 
-function getProfileStats(sightings = [], userId, username) {
-  const userSightings = sightings.filter(
-    (s) =>
-      s.userId === userId ||
-      s.username === username ||
-      s.observer === username
-  )
+function getProfileStats(sightings = [], userId) {
+  const userSightings = sightings.filter((s) => s.usernameKey === userId)
 
   const rareFinds = userSightings.filter((s) =>
-    ['Vulnerable', 'Endangered', 'Critically Endangered'].includes(s.status)
+    ['Near Threatened', 'Vulnerable'].includes(s.status)
   ).length
 
   const criticalFinds = userSightings.filter(
@@ -64,8 +59,8 @@ export default function ProfilePage({
   onLogout
 }) {
   const stats = useMemo(
-    () => getProfileStats(sightings, userId, username),
-    [sightings, userId, username]
+    () => getProfileStats(sightings, userId),
+    [sightings, userId]
   )
 
   const initials = getInitials(username)
@@ -81,7 +76,6 @@ export default function ProfilePage({
       }}
     >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        {/* HEADER */}
         <div
           style={{
             borderRadius: 18,
@@ -223,7 +217,6 @@ export default function ProfilePage({
           </div>
         </div>
 
-        {/* STATS */}
         <div
           style={{
             display: 'grid',

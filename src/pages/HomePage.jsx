@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Scanner from '../components/Scanner'
 import SightingMap from '../components/SightingMap'
 import DetailPanel from '../components/DetailPanel'
-import UserStats, { ImpactFlash, updateStats, getStats } from '../components/UserStats'
-import SpeciesOfDay, { checkSOTDMatch, markSOTDFound, getSOTDData } from '../components/SpeciesOfDay'
-import { saveSighting, updateLeaderboard } from '../services/firebase'
+import UserStats, { ImpactFlash, updateStats, updateSOTDStats, getStats } from '../components/UserStats'
+import SpeciesOfDay, { checkSOTDMatch, markSOTDFound, getSOTDData, BONUS_POINTS } from '../components/SpeciesOfDay'
+import { saveSighting, updateLeaderboard, addBonusPoints } from '../services/firebase'
 import { addToBioDex } from '../components/BioDex'
 import { checkExpeditionProgress, getExpeditionProgress } from '../components/Expeditions'
 import RadarPulse from '../components/RadarPulse'
@@ -39,13 +39,23 @@ export default function HomePage({
   cityName,
   username,
   userId,
-  sightings
+  sightings,
+  myLeaderboardEntry
 }) {
   const [selected, setSelected] = useState(null)
   const [toast, setToast] = useState(null)
   const [alertBanner, setAlertBanner] = useState(null)
   const [focusSpecies, setFocusSpecies] = useState(null)
   const [userStats, setUserStats] = useState(getStats())
+
+  useEffect(() => {
+    if (!myLeaderboardEntry) return
+    setUserStats(prev => ({
+      ...prev,
+      totalScans: Math.max(prev.totalScans, myLeaderboardEntry.totalScans || 0),
+      endangeredFound: Math.max(prev.endangeredFound, myLeaderboardEntry.endangeredFound || 0),
+    }))
+  }, [myLeaderboardEntry])
   const [impactFlash, setImpactFlash] = useState(null)
   const [newBadgeFlash, setNewBadgeFlash] = useState(null)
   const [showRadarPulse, setShowRadarPulse] = useState(false)
@@ -100,13 +110,20 @@ export default function HomePage({
     if (!sotdFoundToday && checkSOTDMatch(result.name, result.latin)) {
       const streak = markSOTDFound()
       setSotdFoundToday(true)
+      const bonusPts = BONUS_POINTS[result.status] || 20
+      if (username) addBonusPoints(username, bonusPts, savedCoords)
+      const { stats: sotdStats, newBadges: sotdBadges } = updateSOTDStats(streak)
+      setUserStats(sotdStats)
       setTimeout(() => {
         setNewBadgeFlash({
           emoji: '🌟',
           label: 'Species of the Day!',
-          desc: `Found it! ${streak > 1 ? `${streak}-day streak!` : 'Bonus points earned!'}`
+          desc: `Found it! ${streak > 1 ? `${streak}-day streak!` : `+${bonusPts} bonus pts earned!`}`
         })
       }, 500)
+      if (sotdBadges.length > 0) {
+        setTimeout(() => setNewBadgeFlash(sotdBadges[0]), 4000)
+      }
     }
 
     const expNotifs = checkExpeditionProgress(result)

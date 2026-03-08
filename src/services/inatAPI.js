@@ -55,7 +55,7 @@ export async function identifySpecies(base64Image) {
         latin: '',
         confidence: (rawScore * 100).toFixed(1),
         status: 'Unknown',
-        statusCode: 'LC',
+        statusCode: '?',
         emoji: '🌱',
         hint: 'Try better lighting or move closer'
       }

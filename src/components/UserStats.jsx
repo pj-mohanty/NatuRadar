@@ -8,6 +8,8 @@ const BADGES = [
   { id: 'critical_found', emoji: '💀', label: 'Rare Finder', desc: 'Found a critically endangered species', category: 'Elite', condition: (stats) => stats.criticalFound >= 1 },
   { id: 'hotspot', emoji: '🌍', label: 'Hotspot Hero', desc: 'Contributed to a biodiversity hotspot', category: 'Impact', condition: (stats) => stats.totalScans >= 3 },
   { id: 'ten_scans', emoji: '🏆', label: 'Conservation Hero', desc: '10 total species identified', category: 'Milestone', condition: (stats) => stats.totalScans >= 10 },
+  { id: 'sotd_found', emoji: '🌟', label: 'Daily Tracker', desc: 'Found the Species of the Day', category: 'Daily', condition: (stats) => (stats.sotdFound || 0) >= 1 },
+  { id: 'sotd_streak3', emoji: '🗓️', label: 'Streak Hunter', desc: '3-day Species of the Day streak', category: 'Elite', condition: (stats) => (stats.sotdStreak || 0) >= 3 },
 ]
 
 function getWeekKey(date = new Date()) {
@@ -19,7 +21,7 @@ function getWeekKey(date = new Date()) {
 
 function loadStats() {
   try {
-    const raw = sessionStorage.getItem('species_signal_stats')
+    const raw = localStorage.getItem('species_signal_stats')
     if (raw) {
       const parsed = JSON.parse(raw)
       return {
@@ -28,6 +30,8 @@ function loadStats() {
         weekScans: 0,
         endangeredFound: 0,
         criticalFound: 0,
+        sotdFound: 0,
+        sotdStreak: 0,
         earnedBadges: [],
         lastScanDate: null,
         lastWeekKey: null,
@@ -43,6 +47,8 @@ function loadStats() {
     weekScans: 0,
     endangeredFound: 0,
     criticalFound: 0,
+    sotdFound: 0,
+    sotdStreak: 0,
     earnedBadges: [],
     lastScanDate: null,
     lastWeekKey: null,
@@ -52,7 +58,7 @@ function loadStats() {
 
 function saveStats(stats) {
   try {
-    sessionStorage.setItem('species_signal_stats', JSON.stringify(stats))
+    localStorage.setItem('species_signal_stats', JSON.stringify(stats))
   } catch {}
 }
 
@@ -91,6 +97,23 @@ export function updateStats(result, currentBioScore) {
       score: currentBioScore
     }
   ]
+
+  const newBadges = []
+  BADGES.forEach((b) => {
+    if (!stats.earnedBadges.includes(b.id) && b.condition(stats)) {
+      stats.earnedBadges.push(b.id)
+      newBadges.push(b)
+    }
+  })
+
+  saveStats(stats)
+  return { stats, newBadges }
+}
+
+export function updateSOTDStats(streak) {
+  const stats = loadStats()
+  stats.sotdFound = (stats.sotdFound || 0) + 1
+  stats.sotdStreak = streak || 1
 
   const newBadges = []
   BADGES.forEach((b) => {

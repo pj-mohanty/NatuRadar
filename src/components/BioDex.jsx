@@ -17,8 +17,8 @@ const RARITY = {
 
 const EMOJI_CATEGORY = {
   '🌿': 'plants', '🌱': 'plants', '🌲': 'plants', '🌸': 'plants',
-  '🌺': 'plants', '🌻': 'plants', '🌾': 'plants',
-  '🐦': 'birds',
+  '🌺': 'plants', '🌻': 'plants', '🌾': 'plants', '🌼': 'plants',
+  '🐦': 'birds', '🦅': 'birds',
   '🦌': 'mammals', '🐾': 'mammals',
   '🦋': 'insects', '🕷️': 'insects',
   '🦎': 'reptiles',

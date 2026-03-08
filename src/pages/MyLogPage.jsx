@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getBioDex } from '../components/BioDex'
 import DetailPanel from '../components/DetailPanel'
 
 const STATUS_COLORS = {
@@ -17,7 +16,7 @@ const RARITY = {
   'Vulnerable': { label: 'UNCOMMON', color: '#f97316' },
   'Near Threatened': { label: 'UNCOMMON', color: '#eab308' },
   'Least Concern': { label: 'COMMON', color: '#22c55e' },
-  'Unknown': { label: 'UNKNOWN', color: '#60a5fa' },
+  'Unknown': { label: 'UNKNOWN', color: '#60a5fa' }
 }
 
 const FLORA_EMOJIS = ['🌿', '🌱', '🌲', '🌸', '🌺', '🌻', '🌾']
@@ -28,7 +27,7 @@ function isFlora(entry) {
 
 function getFilteredEntries(entries, filter) {
   if (filter === 'flora') return entries.filter(isFlora)
-  if (filter === 'fauna') return entries.filter(e => !isFlora(e))
+  if (filter === 'fauna') return entries.filter((e) => !isFlora(e))
   return entries
 }
 
@@ -42,21 +41,21 @@ function buildPlaceholders(filter, countNeeded = 4) {
     { id: 'ph-f-1', emoji: '🌿', title: 'Unknown Flora', subtitle: 'Future plant discovery' },
     { id: 'ph-f-2', emoji: '🌸', title: 'Unknown Bloom', subtitle: 'Scan to reveal species' },
     { id: 'ph-f-3', emoji: '🌲', title: 'Unknown Tree', subtitle: 'Awaiting identification' },
-    { id: 'ph-f-4', emoji: '🍄', title: 'Unknown Fungi', subtitle: 'New specimen slot' },
+    { id: 'ph-f-4', emoji: '🍄', title: 'Unknown Fungi', subtitle: 'New specimen slot' }
   ]
 
   const faunaPlaceholders = [
     { id: 'ph-a-1', emoji: '🐦', title: 'Unknown Avian', subtitle: 'Future fauna discovery' },
     { id: 'ph-a-2', emoji: '🦋', title: 'Unknown Insect', subtitle: 'Scan to reveal species' },
     { id: 'ph-a-3', emoji: '🐾', title: 'Unknown Mammal', subtitle: 'Awaiting identification' },
-    { id: 'ph-a-4', emoji: '🐸', title: 'Unknown Creature', subtitle: 'New specimen slot' },
+    { id: 'ph-a-4', emoji: '🐸', title: 'Unknown Creature', subtitle: 'New specimen slot' }
   ]
 
   const mixed = [
     { id: 'ph-m-1', emoji: '🌿', title: 'Unknown Flora', subtitle: 'Future plant discovery' },
     { id: 'ph-m-2', emoji: '🐦', title: 'Unknown Fauna', subtitle: 'Future animal discovery' },
     { id: 'ph-m-3', emoji: '🦋', title: 'Unknown Insect', subtitle: 'Scan to reveal species' },
-    { id: 'ph-m-4', emoji: '🌸', title: 'Unknown Bloom', subtitle: 'New specimen slot' },
+    { id: 'ph-m-4', emoji: '🌸', title: 'Unknown Bloom', subtitle: 'New specimen slot' }
   ]
 
   const source =
@@ -67,17 +66,12 @@ function buildPlaceholders(filter, countNeeded = 4) {
   return source.slice(0, countNeeded)
 }
 
-export default function MyLogPage() {
-  const [biodex, setBiodex] = useState(() => getBioDex())
+export default function MyLogPage({ sightings = [] }) {
   const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1400
   )
-
-  useEffect(() => {
-    setBiodex(getBioDex())
-  }, [])
 
   useEffect(() => {
     const onResize = () => setWindowWidth(window.innerWidth)
@@ -90,10 +84,26 @@ export default function MyLogPage() {
   const isMobile = windowWidth < 900
   const isPanelOpen = !!selected
 
-  const entries = useMemo(() => Object.values(biodex), [biodex])
+  const entries = useMemo(() => {
+    return sightings.map((s) => ({
+      id: s.id,
+      name: s.name,
+      latin: s.latin || '',
+      emoji: s.emoji || '🌿',
+      status: s.status || 'Unknown',
+      statusCode: s.statusCode || 'UN',
+      taxonId: s.taxonId || null,
+      photo: s.photo || null,
+      confidence: s.confidence ?? 0,
+      discoveredAt: s.observedAt || s.createdAt || null,
+      lat: s.lat,
+      lng: s.lng,
+      scanCount: 1
+    }))
+  }, [sightings])
 
   const floraCount = entries.filter(isFlora).length
-  const faunaCount = entries.filter(e => !isFlora(e)).length
+  const faunaCount = entries.filter((e) => !isFlora(e)).length
 
   const filtered = useMemo(() => getFilteredEntries(entries, filter), [entries, filter])
 
@@ -102,32 +112,18 @@ export default function MyLogPage() {
     [filtered]
   )
 
-  const atRiskCount = entries.filter(e =>
+  const atRiskCount = entries.filter((e) =>
     ['Vulnerable', 'Endangered', 'Critically Endangered'].includes(e.status)
   ).length
 
-  const repeatedScans = entries.filter(e => (e.scanCount || 0) > 1).length
+  const repeatedScans = entries.filter((e) => (e.scanCount || 0) > 1).length
 
   const placeholderCount = Math.max(0, 6 - sorted.length)
   const placeholders = buildPlaceholders(filter, Math.min(placeholderCount, 4))
 
   const handleCardClick = (entry) => {
-    const isSame = selected?.name === entry.name && selected?.latin === entry.latin
-
-    if (isSame) {
-      setSelected(null)
-    } else {
-      setSelected({
-        name: entry.name,
-        latin: entry.latin,
-        emoji: entry.emoji,
-        status: entry.status,
-        statusCode: entry.statusCode,
-        taxonId: entry.taxonId,
-        photo: entry.photo,
-        confidence: entry.confidence ?? 0,
-      })
-    }
+    const isSame = selected?.id === entry.id
+    setSelected(isSame ? null : entry)
   }
 
   return (
@@ -224,7 +220,7 @@ export default function MyLogPage() {
                   textTransform: 'uppercase'
                 }}
               >
-                Collection synced from BioDex
+                Synced from live sightings
               </div>
             </div>
 
@@ -312,7 +308,7 @@ export default function MyLogPage() {
                 Your log is empty
               </div>
               <div style={{ fontSize: 13, color: '#7bb79f', marginTop: 8, lineHeight: 1.7 }}>
-                Go to the home page and scan a species to start building your collection.
+                No sightings found for this user yet.
               </div>
 
               <div
@@ -325,7 +321,7 @@ export default function MyLogPage() {
                   marginInline: 'auto'
                 }}
               >
-                {buildPlaceholders('all', 4).map(ph => (
+                {buildPlaceholders('all', 4).map((ph) => (
                   <PlaceholderCard key={ph.id} item={ph} />
                 ))}
               </div>
@@ -366,16 +362,16 @@ export default function MyLogPage() {
                   gap: 16
                 }}
               >
-                {sorted.map(entry => (
+                {sorted.map((entry) => (
                   <SpeciesCard
-                    key={entry.latin || entry.name}
+                    key={entry.id}
                     entry={entry}
-                    selected={selected?.name === entry.name && selected?.latin === entry.latin}
+                    selected={selected?.id === entry.id}
                     onClick={() => handleCardClick(entry)}
                   />
                 ))}
 
-                {placeholders.map(ph => (
+                {placeholders.map((ph) => (
                   <PlaceholderCard key={ph.id} item={ph} />
                 ))}
               </div>
@@ -522,11 +518,15 @@ function FilterTab({ label, icon, count, active, onClick }) {
 }
 
 function SpeciesCard({ entry, selected, onClick }) {
+  const [imgFailed, setImgFailed] = useState(false)
+
   const color = STATUS_COLORS[entry.status] || '#22c55e'
   const rarity = RARITY[entry.status] || RARITY.Unknown
   const date = entry.discoveredAt
     ? new Date(entry.discoveredAt).toLocaleDateString([], { month: 'short', day: 'numeric' })
     : 'Unknown'
+
+  const showImage = !!entry.photo && !imgFailed
 
   return (
     <div
@@ -590,14 +590,17 @@ function SpeciesCard({ entry, selected, onClick }) {
           }}
         />
 
-        {entry.photo ? (
+        {showImage ? (
           <img
             src={entry.photo}
             alt={entry.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={e => {
-              e.target.style.display = 'none'
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
             }}
+            onError={() => setImgFailed(true)}
           />
         ) : (
           <span style={{ fontSize: 50, filter: `drop-shadow(0 0 12px ${color}99)` }}>
@@ -731,6 +734,13 @@ function SpeciesCard({ entry, selected, onClick }) {
     </div>
   )
 }
+
+
+
+
+
+
+
 
 function PlaceholderCard({ item }) {
   return (

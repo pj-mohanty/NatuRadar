@@ -10,7 +10,7 @@ const SOTD_SPECIES = {
   image: guineaPigImg
 }
 
-const BONUS_POINTS = {
+export const BONUS_POINTS = {
   'Least Concern': 20,
   'Near Threatened': 40,
   'Vulnerable': 80,
