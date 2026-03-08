@@ -61,7 +61,6 @@ export default function Scanner({ onResult }) {
         ref={fileInput}
         type="file"
         accept="image/*"
-        capture="environment"
         style={{ display: 'none' }}
         onChange={handleFile}
       />
