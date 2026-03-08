@@ -67,6 +67,7 @@ export default function ProfilePage({
 
   return (
     <div
+      className="profile-root"
       style={{
         height: '100%',
         overflowY: 'auto',
@@ -75,8 +76,19 @@ export default function ProfilePage({
         padding: '24px'
       }}
     >
+      <style>{`
+        @media (max-width: 768px) {
+          .profile-root { padding: 12px !important; }
+          .profile-card { padding: 16px !important; }
+          .profile-header-grid { grid-template-columns: auto 1fr !important; }
+          .profile-username { font-size: 22px !important; }
+          .profile-logout-btn { grid-column: 1 / -1 !important; width: 100% !important; margin-top: 10px !important; }
+          .profile-meta-row { gap: 8px !important; font-size: 11px !important; }
+        }
+      `}</style>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div
+          className="profile-card"
           style={{
             borderRadius: 18,
             padding: '26px',
@@ -101,6 +113,7 @@ export default function ProfilePage({
           </div>
 
           <div
+            className="profile-header-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: 'auto 1fr auto',
@@ -137,6 +150,7 @@ export default function ProfilePage({
                 }}
               >
                 <div
+                  className="profile-username"
                   style={{
                     fontSize: 32,
                     fontWeight: 900,
@@ -178,6 +192,7 @@ export default function ProfilePage({
               </div>
 
               <div
+                className="profile-meta-row"
                 style={{
                   display: 'flex',
                   gap: 16,
@@ -195,6 +210,7 @@ export default function ProfilePage({
 
             {!!onLogout && (
               <button
+                className="profile-logout-btn"
                 onClick={onLogout}
                 style={{
                   padding: '10px 16px',
