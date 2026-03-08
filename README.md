@@ -9,7 +9,7 @@ Built at **DonsHack 2026 Hackathon**
 ## Team
 
 - [Padmaja Mohanty](https://github.com/pj-mohanty)
-- Pooja Venkates
+- Pooja Venkatesh
 - [Jonathan Samuel Jayaseelan](https://github.com/Joe2k)
 
 ## What it does
