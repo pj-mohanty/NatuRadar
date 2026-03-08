@@ -249,12 +249,6 @@ export default function ProfilePage({
           />
 
           <StatCard
-            label="Avg Confidence"
-            value={`${stats.avgConfidence}%`}
-            color="#8b5cf6"
-          />
-
-          <StatCard
             label="Role"
             value={isScientist ? 'Scientist' : 'Explorer'}
             color={isScientist ? '#60a5fa' : '#22c55e'}
