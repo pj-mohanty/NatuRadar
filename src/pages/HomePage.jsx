@@ -99,13 +99,23 @@ export default function HomePage({
     })
   }, [sightings, speciesSearch, statusFilter, confidenceOnly])
 
-  const handleScan = async (result) => {
+  const handleScan = async (result, capturedImage) => {
     const savedCoords = coords || { lat: 37.77, lng: -122.41 }
 
-    await saveSighting(result, savedCoords, username)
+    // Upload user's photo to Firebase Storage
+    let userPhoto = null
+    if (capturedImage) {
+      try {
+        userPhoto = await uploadSightingPhoto(capturedImage)
+      } catch (err) {
+        console.error('Photo upload failed:', err)
+      }
+    }
+
+    await saveSighting({ ...result, userPhoto }, savedCoords, username)
     if (username) updateLeaderboard(userId, username, result, savedCoords)
 
-    const { isNew } = addToBioDex(result, savedCoords)
+    const { isNew } = addToBioDex(result, savedCoords, userPhoto)
 
     if (!sotdFoundToday && checkSOTDMatch(result.name, result.latin)) {
       const streak = markSOTDFound()

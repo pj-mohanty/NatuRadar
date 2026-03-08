@@ -8,9 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run --exclude api/__tests__/integration.test.js",
-    "test:watch": "vitest --exclude api/__tests__/integration.test.js",
-    "test:integration": "vitest run api/__tests__/integration.test.js"
+    "test": "vitest run --exclude 'api/__tests__/integration.test.js' --exclude 'api/__tests__/cloudinary-upload.test.js'",
+    "test:watch": "vitest --exclude 'api/__tests__/integration.test.js' --exclude 'api/__tests__/cloudinary-upload.test.js'",
+    "test:integration": "vitest run api/__tests__/integration.test.js api/__tests__/cloudinary-upload.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
