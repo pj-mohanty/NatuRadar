@@ -197,7 +197,8 @@ export default function App() {
                 marginBottom: 4
               }}
             >
-              Welcome to <span style={{ color: '#ec4899' }}>NatuRadar</span>
+              Welcome to <span style={{ color: '#7ad08f' }}>Natu</span><span style={{ color: '#ffc2e8' }}>Radar</span>
+
             </div>
 
             <div

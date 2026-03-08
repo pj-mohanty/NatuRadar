@@ -199,7 +199,7 @@ export default function Navbar({
             lineHeight: 1
           }}
         >
-          Natu<span style={{ color: '#8bffcf' }}>Radar</span>
+          <span style={{ color: '#7ad08f' }}>Natu</span><span style={{ color: '#ffc2e8' }}>Radar</span>
         </div>
 
         <div
