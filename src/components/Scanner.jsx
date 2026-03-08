@@ -11,9 +11,14 @@ const BRACKETS = [
 
 export default function Scanner({ onResult }) {
   const fileInput = useRef(null)
+  const galleryInput = useRef(null)
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState(null)
   const [preview, setPreview] = useState(null) // base64 of selected image
+  const [webcamActive, setWebcamActive] = useState(false)
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent)
 
   // Converts any image file to a JPEG data URL via canvas.
   // Ensures consistent format for iNat identify and Cloudinary upload.
@@ -54,16 +59,46 @@ export default function Scanner({ onResult }) {
     reader.readAsDataURL(file)
   }
 
+  const startWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+      streamRef.current = stream
+      videoRef.current.srcObject = stream
+      setWebcamActive(true)
+    } catch {
+      setError('Camera access denied or unavailable')
+    }
+  }
+
+  const captureFrame = async () => {
+    const video = videoRef.current
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext('2d').drawImage(video, 0, 0)
+    const jpeg = canvas.toDataURL('image/jpeg', 0.85)
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    setWebcamActive(false)
+    setError(null)
+    try {
+      setPreview(jpeg)
+      setScanning(true)
+      const result = await identifySpecies(jpeg)
+      if (result) onResult(result, jpeg)
+      else setError('Could not identify — try a clearer photo')
+    } catch (err) {
+      setError(err.message || 'Failed to process image')
+    } finally {
+      setScanning(false)
+    }
+  }
+
   return (
     <div style={{ width: '100%' }}>
-      {/* Hidden file input — accepts camera or gallery on mobile */}
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleFile}
-      />
+      {/* Camera input — forces native camera on mobile */}
+      <input ref={fileInput} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFile} />
+      {/* Gallery input — opens file/photo picker */}
+      <input ref={galleryInput} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
 
       {/* Viewport */}
       <div style={{
@@ -79,6 +114,14 @@ export default function Scanner({ onResult }) {
             backgroundImage: 'linear-gradient(rgba(52,211,153,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.05) 1px, transparent 1px)',
             backgroundSize: '28px 28px',
           }} />
+
+          {/* Live webcam stream (desktop only) — always mounted so videoRef is never null */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: webcamActive ? 'block' : 'none' }}
+          />
 
           {/* Preview or standby */}
           {preview ? (
@@ -159,23 +202,40 @@ export default function Scanner({ onResult }) {
         </div>
       </div>
 
-      {/* Single button — opens camera/gallery */}
-      <button
-        onClick={() => fileInput.current?.click()}
-        disabled={scanning}
-        style={{
-          width: '100%', marginTop: 8, padding: '11px 0',
-          background: scanning ? 'rgba(52,211,153,0.08)' : 'transparent',
-          border: '1px solid #34d399', color: '#34d399',
-          fontWeight: 700, fontSize: 12, letterSpacing: 2,
-          textTransform: 'uppercase', cursor: scanning ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          borderRadius: 2, opacity: scanning ? 0.4 : 1,
-        }}
-      >
-        <span>{scanning ? '⟳' : '📷'}</span>
-        {scanning ? 'SCANNING...' : 'TAKE PHOTO / UPLOAD'}
-      </button>
+      {/* Two buttons — camera and gallery */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <button
+          onClick={() => isMobile ? fileInput.current?.click() : (webcamActive ? captureFrame() : startWebcam())}
+          disabled={scanning}
+          style={{
+            flex: 1, padding: '11px 0',
+            background: scanning ? 'rgba(52,211,153,0.08)' : 'transparent',
+            border: '1px solid #34d399', color: '#34d399',
+            fontWeight: 700, fontSize: 12, letterSpacing: 2,
+            textTransform: 'uppercase', cursor: scanning ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            borderRadius: 2, opacity: scanning ? 0.4 : 1,
+          }}
+        >
+          <span>{scanning ? '⟳' : '📷'}</span>
+          {scanning ? 'SCANNING...' : webcamActive ? 'CAPTURE' : 'TAKE PHOTO'}
+        </button>
+        <button
+          onClick={() => galleryInput.current?.click()}
+          disabled={scanning}
+          style={{
+            flex: 1, padding: '11px 0',
+            background: 'transparent',
+            border: '1px solid rgba(52,211,153,0.4)', color: 'rgba(52,211,153,0.7)',
+            fontWeight: 700, fontSize: 12, letterSpacing: 2,
+            textTransform: 'uppercase', cursor: scanning ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            borderRadius: 2, opacity: scanning ? 0.4 : 1,
+          }}
+        >
+          <span>📁</span> UPLOAD
+        </button>
+      </div>
 
       {error && (
         <p style={{ color: '#f87171', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
