@@ -8,8 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run --exclude api/__tests__/integration.test.js",
+    "test:watch": "vitest --exclude api/__tests__/integration.test.js",
+    "test:integration": "vitest run api/__tests__/integration.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
