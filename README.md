@@ -43,17 +43,14 @@ Built **at DonsHack 2026**, where it placed 🏆 **3rd overall**.
 ### 🔥 Heatmap View
 ![Heatmap](./public/heatmap.png)
 
+### 📊 Analysis Dashboard
+![Analysis](./public/analysis.png)
+
 ### 🏆 Leaderboard
 ![Leaderboard](./public/leaderboard.png)
 
 ### 🎯 Missions
 ![Missions](./public/missions.png)
-
-### 📝 Logging System
-![Log](./public/log.png)
-
-### 📊 Analysis Dashboard
-![Analysis](./public/analysis.png)
 
 ### 📈 Advanced Insights
 ![Analysis2](./public/analysis2.png)
