@@ -5,9 +5,10 @@
 
 ## 🚀 Overview
 
-NatuRadar is a real-time, AI-powered platform that turns everyday exploration into meaningful biodiversity data collection.
+NatuRadar is a real-time, AI-powered platform designed to turn everyday exploration into meaningful biodiversity data collection.
+Users can scan plants or animals, get instant species identification, and contribute to a **crowdsourced ecological database**. Every observation is geotagged and visualized on a live map, collectively building a real-time biodiversity dataset that can support researchers and conservation efforts.
+To keep users engaged, the platform incorporates gamification through rarity-based scoring, leaderboards, and missions—turning exploration into a collaborative and rewarding experience.
 
-Users can scan plants or animals, get instant species identification, and contribute to a growing ecological dataset—while staying engaged through gamification like missions, leaderboards, and rarity-based scoring.
 
 Built **at DonsHack 2026**, where it placed 🏆 **3rd overall**.
 
