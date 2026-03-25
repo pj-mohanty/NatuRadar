@@ -1,24 +1,63 @@
-# NatuRadar
+# 🌿 NatuRadar  
+**AI-powered, gamified biodiversity discovery platform**
 
-**Live:** [natu-radar.vercel.app](https://natu-radar.vercel.app)
+**Live Demo:** [natu-radar.vercel.app](https://natu-radar.vercel.app)
 
-A gamified biodiversity discovery app. Take a photo of any plant or animal, get an AI-powered species identification, earn points, and compete with others on the leaderboard.
+## 🚀 Overview
 
-Built at **DonsHack 2026 Hackathon**
+NatuRadar is a real-time, AI-powered platform that turns everyday exploration into meaningful biodiversity data collection.
 
-## Team
+Users can scan plants or animals, get instant species identification, and contribute to a growing ecological dataset—while staying engaged through gamification like missions, leaderboards, and rarity-based scoring.
 
-- [Padmaja Mohanty](https://github.com/pj-mohanty)
-- Pooja Venkatesh
-- [Jonathan Samuel Jayaseelan](https://github.com/Joe2k)
+Built **at DonsHack 2026**, where it placed 🏆 **3rd overall**.
 
-## What it does
 
-- **Scan** — take or upload a photo to identify a species
-- **Log** — every scan is saved with your photo, location, and species data
-- **BioDex** — your personal collection of discovered species
-- **Leaderboard** — earn points based on species rarity, compete with others
-- **Missions** — daily and weekly goals to keep exploring
+## ✨ Features
+
+- 🔍 **Scan & Identify**  
+  Upload or capture images to get AI-powered species identification with confidence scores  
+
+- 📍 **Geotagged Logging**  
+  Every observation is stored with location, image, and species data  
+
+- 🧬 **BioDex (Personal Collection)**  
+  Track and revisit all discovered species  
+
+- 🏆 **Leaderboard**  
+  Compete with others based on rarity-weighted scoring  
+
+- 🎯 **Missions**  
+  Daily and weekly challenges to encourage real-world exploration  
+
+- 🗺️ **Live Biodiversity Map**  
+  Visualize observations and biodiversity density across regions  
+
+- 🔥 **Heatmap Analytics**  
+  Identify biodiversity hotspots in real time
+
+## 📸 Screenshots
+
+### 🏠 Home
+![Home](./public/home.png)
+
+### 🔥 Heatmap View
+![Heatmap](./public/heatmap.png)
+
+### 🏆 Leaderboard
+![Leaderboard](./public/leaderboard.png)
+
+### 🎯 Missions
+![Missions](./public/missions.png)
+
+### 📝 Logging System
+![Log](./public/log.png)
+
+### 📊 Analysis Dashboard
+![Analysis](./public/analysis.png)
+
+### 📈 Advanced Insights
+![Analysis2](./public/analysis2.png)
+
 
 ## Tech Stack
 
@@ -74,3 +113,9 @@ npm run test:integration # real API calls (needs valid env vars)
 ## AI Usage
 
 We used [Claude Code](https://claude.ai/code) by Anthropic as a pair programming assistant throughout development.
+
+## Team
+
+- [Padmaja Mohanty](https://github.com/pj-mohanty)
+- [Jonathan Samuel Jayaseelan](https://github.com/Joe2k)
+- Pooja Venkatesh
